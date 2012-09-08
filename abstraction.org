@@ -4,7 +4,21 @@ This is an attempt to better understand how the process of abstraction can be us
 One way to formulate the problem of modeling intelligence is by vieweing it as a process of inference over incomplete data influenced on previously perceived data.  As a starting point we can imagine data as being a (possibly nested) list of symbols.  An inference problem can be described as a (possibly nested) list containing variables where the variables represent an unknown part of the list that should be filled in.
 * Examples
 ** Binary Classification
+An example of a problem that can be formulated in terms of inference on lists is classification of binary data.  We can write input data as
+#+name: binary-data
+#+begin_src python :results output
+pattern0 = [[[1], 0], [[1,1], 0], [[1,1,1,1,1], 0], [[1,1], 0]]
+pattern1 = [[[1,1,0,0],1], [[1,1,1,0,0,0],1], [[1,1,1,1,0,0,0,0],1]]
+print pattern0+pattern1
+#+end_src
+
+#+RESULTS: binary-data
+: [[[1], 0], [[1, 1], 0], [[1, 1, 1, 1, 1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 1, 1, 1, 0, 0, 0, 0], 1]]
+
 *** First Approximation
 A simple (but expected to be poor performing) algorithm for the inference problem would be to store every piece of data then when an inference problem (i.e. partial piece of data) is faced we try to match what is known to any of the pieces of data that have already been seen and then use a matching piece of data to fill in the unknowns in the inference problem.  
 
-Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and get an idea of how the program should be structured.
+Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and make the problem more concrete .
+
+
+
