@@ -1,24 +1,47 @@
 * Motivation
-This is an attempt to better understand how the process of abstraction can be used in computational models of intelligence.
+This is an attempt to better understand how the process of abstraction can be used in computational models of intelligence.  It is also an experiment in literate-style programming and questions related to literate programming will be prefaced with LP?
 * Approach
-One way to formulate the problem of modeling intelligence is by vieweing it as a process of inference over incomplete data influenced on previously perceived data.  As a starting point we can imagine data as being a (possibly nested) list of symbols.  An inference problem can be described as a (possibly nested) list containing variables where the variables represent an unknown part of the list that should be filled in.
+One way to formulate the problem of modeling intelligence is by vieweing it as a process of inference over incomplete data influenced by previously perceived data.  As a starting point we can imagine data as being a (possibly nested) list of symbols.  An inference problem can be described as a (possibly nested) list containing variables where the variables represent an unknown part of the list that should be filled in.
 * Examples
 ** Binary Classification
 An example of a problem that can be formulated in terms of inference on lists is classification of binary data.  We can write input data as
-#+name: binary-data
-#+begin_src python :results output
+#+name: binary_data
+#+begin_src python :results value 
 pattern0 = [[[1], 0], [[1,1], 0], [[1,1,1,1,1], 0], [[1,1], 0]]
 pattern1 = [[[1,1,0,0],1], [[1,1,1,0,0,0],1], [[1,1,1,1,0,0,0,0],1]]
-print pattern0+pattern1
+return pattern0+pattern1
 #+end_src
 
-#+RESULTS: binary-data
-: [[[1], 0], [[1, 1], 0], [[1, 1, 1, 1, 1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 1, 1, 1, 0, 0, 0, 0], 1]]
+#+RESULTS: binary_data
+| (1)               | 0 |
+| (1 1)             | 0 |
+| (1 1 1 1 1)       | 0 |
+| (1 1)             | 0 |
+| (1 1 0 0)         | 1 |
+| (1 1 1 0 0 0)     | 1 |
+| (1 1 1 1 0 0 0 0) | 1 |
 
 *** First Approximation
 A simple (but expected to be poor performing) algorithm for the inference problem would be to store every piece of data then when an inference problem (i.e. partial piece of data) is faced we try to match what is known to any of the pieces of data that have already been seen and then use a matching piece of data to fill in the unknowns in the inference problem.  
 
-Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and make the problem more concrete .
+Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and make the idea of modeling intelligence as inference on lists more concrete.
 
+**** Storing data
+The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now.
 
+#+name: store-data
+#+begin_src python :results output :session simple-model
+all_data = []
+def store_data(input_data):
+   print input_data
 
+store_data('hello world')
+#+end_src
+
+#+RESULTS: store-data
+: hello world
+
+***** LP? Python mode in src blocks?
+What is the best way to edit code in the source blocks?  By default, emacs seems to be in org-mode.
+****** C-c '
+http://orgmode.org/manual/Editing-source-code.html#Editing-source-code
