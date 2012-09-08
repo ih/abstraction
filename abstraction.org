@@ -6,13 +6,18 @@ One way to formulate the problem of modeling intelligence is by vieweing it as a
 ** Binary Classification
 An example of a problem that can be formulated in terms of inference on lists is classification of binary data.  We can write input data as
 #+name: binary_data
-#+begin_src python :results value 
+#+begin_src python :results value
 pattern0 = [[[1], 0], [[1,1], 0], [[1,1,1,1,1], 0], [[1,1], 0]]
 pattern1 = [[[1,1,0,0],1], [[1,1,1,0,0,0],1], [[1,1,1,1,0,0,0,0],1]]
-return pattern0+pattern1
 #+end_src
 
-#+RESULTS: binary_data
+With org-mode's literate programming support we can display this data in a nice format like so
+#+begin_src python :results value :noweb yes
+  <<binary_data>>
+  return pattern0+pattern1
+#+end_src
+
+#+RESULTS:
 | (1)               | 0 |
 | (1 1)             | 0 |
 | (1 1 1 1 1)       | 0 |
@@ -27,21 +32,41 @@ A simple (but expected to be poor performing) algorithm for the inference proble
 Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and make the idea of modeling intelligence as inference on lists more concrete.
 
 **** Storing data
-The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now.
-
-#+name: store-data
-#+begin_src python :results output :session simple-model
-all_data = []
-def store_data(input_data):
-   print input_data
-
-store_data('hello world')
+The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now, but use a layer of abstraction to manipulate it.
+#+name: memory
+#+begin_src python 
+  class Memory:
+      memory = []
+      def add(self, data):
+          self.memory.append(data)
+  
+#+end_src
+Now we test the function using the binary data from earlier
+#+name: test_memory
+#+begin_src python :results value :noweb yes
+  <<binary_data>>
+  <<memory>>
+  memory = Memory()
+  for data in pattern0:
+      memory.add(data)
+  
+  return memory.memory
+  
 #+end_src
 
-#+RESULTS: store-data
-: hello world
+#+RESULTS: test_memory
+| (1)         | 0 |
+| (1 1)       | 0 |
+| (1 1 1 1 1) | 0 |
+| (1 1)       | 0 |
+
 
 ***** LP? Python mode in src blocks?
 What is the best way to edit code in the source blocks?  By default, emacs seems to be in org-mode.
 ****** C-c '
 http://orgmode.org/manual/Editing-source-code.html#Editing-source-code
+
+**** Inference
+Now that we have a way to hold prior data we want to be able to use that data to solve inference problems.  Let's formalize our earlier approach of inference on nested lists.
+***** inference formulation
+An inference problem can be described as a list with some variables that represent unknown parts of the list.  Elements of the list can be either lists, symbols, or variables.
