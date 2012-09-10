@@ -69,4 +69,48 @@ http://orgmode.org/manual/Editing-source-code.html#Editing-source-code
 **** Inference
 Now that we have a way to hold prior data we want to be able to use that data to solve inference problems.  Let's formalize our earlier approach of inference on nested lists.
 ***** inference formulation
-An inference problem can be described as a list with some variables that represent unknown parts of the list.  Elements of the list can be either lists, symbols, or variables.
+An inference problem can be described as a list with some variables that represent unknown parts of the list.  Elements of the list can be either lists, symbols, or variables.  In code the class might look like
+
+#+name: inference_problem
+#+begin_src python :results value
+  class InferenceProblem:
+      #variables that might appear in partial_data
+      variables = []
+      partial_data = []
+  
+      def __init__(self, initial_variables, initial_partial_data):
+          self.variables = initial_variables
+          self.partial_data = initial_partial_data
+  
+#+end_src
+
+We could make the typing more explicit by performing checks during instantiation of the class, but we'll leave it unless this becomes an issue.
+
+****** Binary Data Inference Problems
+******* Classification
+One example of an inference problem is classification of binary data.  Suppose we have some data from either pattern0 or pattern1 above as shown earlier and we want to infer the pattern it came from, we can create a problem like so
+#+name: binary_data_classification_problems
+#+begin_src python :results output :noweb yes
+  <<inference_problem>>
+  
+  classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
+  classify_problem1 = InferenceProblem(['v0'], [[1,1,1,0,0,0], 'v0'])
+
+  print classify_problem0.variables
+#+end_src
+
+#+RESULTS: binary_data_classification_problems
+: ['v0']
+
+The solution for classify_problem0 being v0 is [0] and the solution for classify_problem1 being v0 is [1].  The reason the solutions are in a list is that variables may represent several missing elements in a list.  This is better illustrated in the next example.
+******* Completion
+Another type of problem would be to infer parts of the binary data given we know the pattern e.g.
+
+#+name: binary_data_completion_problems
+#+begin_src python :results value :noweb yes
+  complete_problem0 = InferenceProblem(['v0'], [[1,1,1,'v0'], 1])
+  complete_problem1 = InferenceProblem(['v0', 'v1'], [['v1', 1, 'v2'], 0])
+#+end_src
+The solution for the first problem intuitively is v0 is [0, 0, 0].  The second problem, complete_problem1, raises the issue that problems do not necessarily have a unique answer.  For this problem v1 and v2 could be lists of 1 of arbitrary length e.g. v0 is [1, 1, 1] and v1 is [1] or v0 is [1,1] and v1 is [1,1,1,1].  We'll take a closer look at solutions to inference problems in the next section.
+
+****** Binary Data Solutions
