@@ -111,6 +111,47 @@ Another type of problem would be to infer parts of the binary data given we know
   complete_problem0 = InferenceProblem(['v0'], [[1,1,1,'v0'], 1])
   complete_problem1 = InferenceProblem(['v0', 'v1'], [['v1', 1, 'v2'], 0])
 #+end_src
-The solution for the first problem intuitively is v0 is [0, 0, 0].  The second problem, complete_problem1, raises the issue that problems do not necessarily have a unique answer.  For this problem v1 and v2 could be lists of 1 of arbitrary length e.g. v0 is [1, 1, 1] and v1 is [1] or v0 is [1,1] and v1 is [1,1,1,1].  We'll take a closer look at solutions to inference problems in the next section.
+The solution for the first problem intuitively is v0 is [0, 0, 0].  The second problem, complete_problem1, raises the issue that problems do not necessarily have a unique answer.  For this problem v1 and v2 could be lists of 1 of arbitrary length e.g. v0 is [1, 1, 1] and v1 is [1] or v0 is [1,1] and v1 is [1,1,1,1].  We'll take a closer look at solutions to inference problems and evaluating them in the next section.
 
 ****** Binary Data Solutions
+An inference problem is a set of variables along with a list containing those variables.  The solution to inference problems are values that are assigned to those variables (bindings or an environment) and are substituted in the following way.
+
+#+name: substitute_function
+#+begin_src python :results value
+  def substitute(partial_data, bindings):
+      """
+      replace variables in the abstraction with the matching values in the bindings
+      and return the resulting list
+      """
+      complete_list = []
+      for element in partial_data:
+          replacement = swap(element, bindings)
+          complete_list += replacement
+      return complete_list
+  
+  def swap(element, bindings):
+          if element in bindings.keys():
+              return bindings[element]
+          elif isinstance(element, list):
+              return [substitute(element, bindings)]
+          else:
+              return [element]
+  
+#+end_src
+
+We can demonstrate the substitute function on our earlier examples of inference problems like so
+
+#+name: substitution_examples
+#+begin_src python :results output :noweb yes
+  <<substitute_function>>
+  <<binary_data_classification_problems>>
+  <<binary_data_completion_problems>>
+  
+  print substitute(classify_problem0.partial_data, {'v0': 1})
+#+end_src
+
+#+RESULTS: substitution_examples
+
+#+RESULTS: subsitution_examples
+TODO: debugging literate programming code?  perhaps tangle to debug?
+TODO: discuss why replacing a variable with a list allows for more flexibility in specifying problems
