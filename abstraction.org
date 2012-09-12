@@ -147,8 +147,8 @@ We can demonstrate the substitute function on our earlier examples of inference 
   <<binary_data_classification_problems>>
   <<binary_data_completion_problems>>
   
-  print substitute(classify_problem0.partial_data, {'v0': [1]})
-  print substitute(classify_problem1.partial_data, {'v0': [0]})
+  print substitute(classify_problem0.partial_data, {'v0': [0]})
+  print substitute(classify_problem1.partial_data, {'v0': [1]})
   print substitute(complete_problem0.partial_data, {'v0': [0,0,0]})
   print substitute(complete_problem1.partial_data, {'v0': [1,1,1], 'v1': [1]})
   print substitute(complete_problem1.partial_data, {'v0': [1,1], 'v1': [1,1,1,1]})
@@ -156,8 +156,8 @@ We can demonstrate the substitute function on our earlier examples of inference 
 
 #+RESULTS: substitution_examples
 : ['v0']
-: [[1, 1, 1, 1], 1]
-: [[1, 1, 1, 0, 0, 0], 0]
+: [[1, 1, 1, 1], 0]
+: [[1, 1, 1, 0, 0, 0], 1]
 : [[1, 1, 1, 0, 0, 0], 1]
 : [[1, 1, 1, 1, 1], 0]
 : [[1, 1, 1, 1, 1, 1, 1], 0]
@@ -165,4 +165,25 @@ We can demonstrate the substitute function on our earlier examples of inference 
 #+RESULTS: subsitution_examples
 Here we used the solutions, i.e. bindings, we thought were intuitively correct for each problem and we get completed lists that look like the prior data we had seen.
 
-TODO: discuss why replacing a variable with a list allows for more flexibility in specifying problems
+We assume for every inference problem there is some "true solution" or set of solutions for it and an algorithm for solving inference problems should try to produce the true solution for a given inference problem.
+
+So for 
+#+begin_src python
+  classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
+#+end_src 
+the true solution could be defined as {'v0': [0]}.  
+In the case of 
+#+begin_src python
+  complete_problem1 = InferenceProblem(['v0', 'v1'],[['v0',1,'v1'], 0])  
+#+end_src 
+the true solution might be the set of all lists containing 1s i.e. {[1], [1,1], [1,1,1],...}
+
+How do we tell if one solution is better than the other?  So given
+#+begin_src python
+  complete_problem0 = InferenceProblem(['v0'],[[1,1,1,'v0'] '1'])  
+  true_solution = {'v0', [0,0,0]}
+#+end_src 
+If we have an algorithm that has a choice between {'v0', [0,0,1]} and {'v0, [1,1,1]}, how does one compare the two solutions.  It's not clear, but this seems to be something that depends on the algorithm implementation rather than the problem specification.  In terms of the problem either the solution is incorrect or correct and in this case both solutions are incorrect since they don't match the true solution.
+
+
+
