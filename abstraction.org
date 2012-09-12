@@ -90,7 +90,7 @@ We could make the typing more explicit by performing checks during instantiation
 ******* Classification
 One example of an inference problem is classification of binary data.  Suppose we have some data from either pattern0 or pattern1 above as shown earlier and we want to infer the pattern it came from, we can create a problem like so
 #+name: binary_data_classification_problems
-#+begin_src python :results output :noweb yes
+#+begin_src python :results output :noweb yes :tangle yes
   <<inference_problem>>
   
   classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
@@ -107,9 +107,9 @@ The solution for classify_problem0 being v0 is [0] and the solution for classify
 Another type of problem would be to infer parts of the binary data given we know the pattern e.g.
 
 #+name: binary_data_completion_problems
-#+begin_src python :results value :noweb yes
+#+begin_src python :results value :noweb yes :tangle yes
   complete_problem0 = InferenceProblem(['v0'], [[1,1,1,'v0'], 1])
-  complete_problem1 = InferenceProblem(['v0', 'v1'], [['v1', 1, 'v2'], 0])
+  complete_problem1 = InferenceProblem(['v0', 'v1'], [['v0', 1, 'v1'], 0])
 #+end_src
 The solution for the first problem intuitively is v0 is [0, 0, 0].  The second problem, complete_problem1, raises the issue that problems do not necessarily have a unique answer.  For this problem v1 and v2 could be lists of 1 of arbitrary length e.g. v0 is [1, 1, 1] and v1 is [1] or v0 is [1,1] and v1 is [1,1,1,1].  We'll take a closer look at solutions to inference problems and evaluating them in the next section.
 
@@ -117,7 +117,7 @@ The solution for the first problem intuitively is v0 is [0, 0, 0].  The second p
 An inference problem is a set of variables along with a list containing those variables.  The solution to inference problems are values that are assigned to those variables (bindings or an environment) and are substituted in the following way.
 
 #+name: substitute_function
-#+begin_src python :results value
+#+begin_src python :results value :tangle yes
   def substitute(partial_data, bindings):
       """
       replace variables in the abstraction with the matching values in the bindings
@@ -142,16 +142,27 @@ An inference problem is a set of variables along with a list containing those va
 We can demonstrate the substitute function on our earlier examples of inference problems like so
 
 #+name: substitution_examples
-#+begin_src python :results output :noweb yes
+#+begin_src python :results output :noweb yes :tangle yes
   <<substitute_function>>
   <<binary_data_classification_problems>>
   <<binary_data_completion_problems>>
   
-  print substitute(classify_problem0.partial_data, {'v0': 1})
+  print substitute(classify_problem0.partial_data, {'v0': [1]})
+  print substitute(classify_problem1.partial_data, {'v0': [0]})
+  print substitute(complete_problem0.partial_data, {'v0': [0,0,0]})
+  print substitute(complete_problem1.partial_data, {'v0': [1,1,1], 'v1': [1]})
+  print substitute(complete_problem1.partial_data, {'v0': [1,1], 'v1': [1,1,1,1]})
 #+end_src
 
 #+RESULTS: substitution_examples
+: ['v0']
+: [[1, 1, 1, 1], 1]
+: [[1, 1, 1, 0, 0, 0], 0]
+: [[1, 1, 1, 0, 0, 0], 1]
+: [[1, 1, 1, 1, 1], 0]
+: [[1, 1, 1, 1, 1, 1, 1], 0]
 
 #+RESULTS: subsitution_examples
-TODO: debugging literate programming code?  perhaps tangle to debug?
+Here we used the solutions, i.e. bindings, we thought were intuitively correct for each problem and we get completed lists that look like the prior data we had seen.
+
 TODO: discuss why replacing a variable with a list allows for more flexibility in specifying problems
