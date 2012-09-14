@@ -50,7 +50,7 @@ Now we test the function using the binary data from earlier
   for data in pattern0:
       memory.add(data)
   
-  return memory.memory
+
   
 #+end_src
 
@@ -209,5 +209,19 @@ Let's look at the pairing of partial data to previous data
 #+end_src
 
 #+RESULTS: iterate_match
+: [[1, 1, 1, 1], 'v0'] [[1], 0]
+: [[1, 1, 1, 1], 'v0'] [[1, 1], 0]
+: [[1, 1, 1, 1], 'v0'] [[1, 1, 1, 1, 1], 0]
+: [[1, 1, 1, 1], 'v0'] [[1, 1], 0]
 
+What should be the output of a matching e.g. if I try to match [[1, 1, 1, 1], 'v0'] with [[1], 0] what should the result be?  What about [[1, 1, 1, 1], 'v0'] and [[1, 1, 1, 1, 1], 0]?
+
+If there is an obvious match e.g. in the case of [[1, 1], 'v0'] and [[1, 1], 0] we would like to return at least the binding {'v0': 0}.  Another possible thing to return is a score for the match.  Are there any other things we might want to return?  What are the consequences of using the different return types?
+
+In all cases it seems natural that the return of a matching should be a function of matching the individual elements.
+
+******* Returning Only a Binding
+******* Returning a Binding with a Score
+
+TODO look at the case where pattern1 has been added to memory.
 ****** Creating a binding
