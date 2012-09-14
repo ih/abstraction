@@ -42,8 +42,8 @@ The first part of the algorithm is to store data.  We'll use a list as the data 
   
 #+end_src
 Now we test the function using the binary data from earlier
-#+name: test_memory
-#+begin_src python :results value :noweb yes
+#+name: add_pattern0_to_memory
+#+begin_src python :noweb yes
   <<binary_data>>
   <<memory>>
   memory = Memory()
@@ -54,7 +54,14 @@ Now we test the function using the binary data from earlier
   
 #+end_src
 
-#+RESULTS: test_memory
+#+name: return_memory
+#+begin_src python :noweb yes
+  <<add_pattern0_to_memory>>
+  
+  return memory.memory
+#+end_src
+
+#+RESULTS: return_memory
 | (1)         | 0 |
 | (1 1)       | 0 |
 | (1 1 1 1 1) | 0 |
@@ -68,11 +75,11 @@ http://orgmode.org/manual/Editing-source-code.html#Editing-source-code
 
 **** Inference
 Now that we have a way to hold prior data we want to be able to use that data to solve inference problems.  Let's formalize our earlier approach of inference on nested lists.
-***** inference formulation
+***** Inference Formulation
 An inference problem can be described as a list with some variables that represent unknown parts of the list.  Elements of the list can be either lists, symbols, or variables.  In code the class might look like
 
 #+name: inference_problem
-#+begin_src python :results value
+#+begin_src python 
   class InferenceProblem:
       #variables that might appear in partial_data
       variables = []
@@ -96,18 +103,15 @@ One example of an inference problem is classification of binary data.  Suppose w
   classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
   classify_problem1 = InferenceProblem(['v0'], [[1,1,1,0,0,0], 'v0'])
 
-  print classify_problem0.variables
 #+end_src
 
-#+RESULTS: binary_data_classification_problems
-: ['v0']
 
 The solution for classify_problem0 being v0 is [0] and the solution for classify_problem1 being v0 is [1].  The reason the solutions are in a list is that variables may represent several missing elements in a list.  This is better illustrated in the next example.
 ******* Completion
 Another type of problem would be to infer parts of the binary data given we know the pattern e.g.
 
 #+name: binary_data_completion_problems
-#+begin_src python :results value :noweb yes :tangle yes
+#+begin_src python :results output :noweb yes :tangle yes
   complete_problem0 = InferenceProblem(['v0'], [[1,1,1,'v0'], 1])
   complete_problem1 = InferenceProblem(['v0', 'v1'], [['v0', 1, 'v1'], 0])
 #+end_src
@@ -142,7 +146,7 @@ An inference problem is a set of variables along with a list containing those va
 We can demonstrate the substitute function on our earlier examples of inference problems like so
 
 #+name: substitution_examples
-#+begin_src python :results output :noweb yes :tangle yes
+#+begin_src python :results output :noweb yes :tangle no
   <<substitute_function>>
   <<binary_data_classification_problems>>
   <<binary_data_completion_problems>>
@@ -186,4 +190,24 @@ How do we tell if one solution is better than the other?  So given
 If we have an algorithm that has a choice between {'v0', [0,0,1]} and {'v0, [1,1,1]}, how does one compare the two solutions.  It's not clear, but this seems to be something that depends on the algorithm implementation rather than the problem specification.  In terms of the problem either the solution is incorrect or correct and in this case both solutions are incorrect since they don't match the true solution.
 
 
+***** Algorithm for Inference
+This section will describe more formally the simple algorithm for trying to solve inference problems introduced in the section "First Approximation."  Recall the idea is to create a solution, i.e. binding of variables, based on matching the partial data of the inference problem to previously seen data.
 
+The process of matching seems like unification (http://en.wikipedia.org/wiki/Unification_(computer_science)) so it might be worth looking more into the literature if straight-forward approaches run into barriers.  For now though we'll develop our approach by looking at small examples and generalizing.  
+
+Suppose our prior data consists of pattern0 i.e. we have executed the add_pattern0_to_memory code block and now we are faced with classify_problem0.  We want to try and match the partial data of classify_problem0 to the data we've already seen then use that to create a solution.
+****** Matching
+Let's look at the pairing of partial data to previous data
+#+name: iterate_match
+#+begin_src python :results output :noweb yes :tangle yes
+  <<add_pattern0_to_memory>>
+  <<binary_data_classification_problems>>
+  
+  for memory in memory.memory:
+      print classify_problem0.partial_data, memory
+  
+#+end_src
+
+#+RESULTS: iterate_match
+
+****** Creating a binding
