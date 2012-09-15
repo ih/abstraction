@@ -200,7 +200,12 @@ Suppose our prior data consists of pattern0 i.e. we have executed the add_patter
 Let's look at the pairing of partial data to previous data
 #+name: iterate_match
 #+begin_src python :results output :noweb yes :tangle yes
-  <<add_pattern0_to_memory>>
+  <<test_memory>>
+  <<binary_data_classification_problems>>
+  
+  #TODO define an iterator for Memory to go through the saved data
+  for prior_data in Memory.memory
+    <<add_pattern0_to_memory>>
   <<binary_data_classification_problems>>
   
   for memory in memory.memory:
@@ -214,14 +219,51 @@ Let's look at the pairing of partial data to previous data
 : [[1, 1, 1, 1], 'v0'] [[1, 1, 1, 1, 1], 0]
 : [[1, 1, 1, 1], 'v0'] [[1, 1], 0]
 
-What should be the output of a matching e.g. if I try to match [[1, 1, 1, 1], 'v0'] with [[1], 0] what should the result be?  What about [[1, 1, 1, 1], 'v0'] and [[1, 1, 1, 1, 1], 0]?
+What should be the output of a matching e.g. if I try to match [[1, 1, 1, 1], 'v0'] with [[1], 0] what should the result be?  What about [[1, 1, 1, 1], 'v0'] and [[1, 1, 1, 1, 1], 0]?  In the future perhaps we'll develop a match function that returns {'v0': 0} as a binding for these two examples by making some sort of "best guess", but for a first pass let's assume there needs to be a perfect match of non-variable parts of the partial data for match to return any bindings (this may be enough when abstraction over prior data is added since matching against abstractions of prior data might have the same effect as making a best guess).  
 
-If there is an obvious match e.g. in the case of [[1, 1], 'v0'] and [[1, 1], 0] we would like to return at least the binding {'v0': 0}.  Another possible thing to return is a score for the match.  Are there any other things we might want to return?  What are the consequences of using the different return types?
 
-In all cases it seems natural that the return of a matching should be a function of matching the individual elements.
 
-******* Returning Only a Binding
-******* Returning a Binding with a Score
+We still must consider what to do when there are several possible valid matches.  An example being
+#+name: example_data_many_matches
+#+begin_src python  
+  partial_data = ['v0', 0, 'v1']
+  prior_data = [0,1,0,1,0,1,0,1]
+  
+  valid_binding0 = {'v0': [0,1,0,1], 'v1': [1,0,1]}
+  valid_binding1 = {'v0': [0,1], 'v1': [1,0,1,0,1]}
+#+end_src
+
+What is the return type for match? Perhaps a single binding out of the possibly many bindings.  Maybe all the bindings.  In addition to the binding(s) it might also be useful to return some sort of score with the binding so that we may distinguish between the quality of different bindings.  What are the consequences of the different return types in the broader context of finding a solution to an inference problem?  
+
+This raises another question worth asking about match is wether it should try to match to any part of the prior data or just the top level. E.g.
+#name: example_sub_matching
+#+begin_src python
+  partial_data = [1,0,'v0']
+  prior_data = [1,1,[1,0,1]]
+  
+  sub_match = {'v0', [1]}
+#+end_src
+Where the sub_match occurs from partial_data being matched to the third element of prior_data.  This is an interesting question because if this is the case then rather than viewing a solution to an inference problem as trying to match to each individual prior piece of data we can view the prior data as one large piece of data and solving the inference problem is a matter of finding a match of the partial_data to this single prior data object.
+
+
+
+In all cases it seems natural that the return of a matching should be a function of matching the individual elements of the partial data.  The possible types to be matched are primitives, variables, and lists.  
+
+#+name: simple-match
+#+begin_src python :noweb yes
+ 
+#+end_src
+
+Let's look at the four possible return types we've listed so far
+******* single binding no score
+******* multiple bindings no score
+******* single binding with score
+******* multiple bindings with score
+
+Furthmore we can define types of lists as lists with variables in the top level, lists with variables in a deeper level, and lists without variables.  Now if we pair these possibilities 
+
+
 
 TODO look at the case where pattern1 has been added to memory.
+******* Returning a set of possible bindings
 ****** Creating a binding
