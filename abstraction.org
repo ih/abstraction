@@ -191,7 +191,7 @@ If we have an algorithm that has a choice between {'v0', [0,0,1]} and {'v0, [1,1
 
 
 ***** Algorithm for Inference
-This section will describe more formally the simple algorithm for trying to solve inference problems introduced in the section "First Approximation."  Recall the idea is to create a solution, i.e. binding of variables, based on matching the partial data of the inference problem to previously seen data.
+This section will describe more formally the simple algorithm for trying to solve inference problems introduced in the section "First Approximation."  Recall the idea is to create a solution, i.e. binding of variables, based on matching the partial data of the inference problem to previously seen data.  Another way to phrase it is we want to find an environment where the the partial data is the same as some prior data we've seen.
 
 The process of matching seems like unification (http://en.wikipedia.org/wiki/Unification_(computer_science)) so it might be worth looking more into the literature if straight-forward approaches run into barriers.  For now though we'll develop our approach by looking at small examples and generalizing.  
 
@@ -221,21 +221,19 @@ Let's look at the pairing of partial data to previous data
 
 What should be the output of a matching e.g. if I try to match [[1, 1, 1, 1], 'v0'] with [[1], 0] what should the result be?  What about [[1, 1, 1, 1], 'v0'] and [[1, 1, 1, 1, 1], 0]?  In the future perhaps we'll develop a match function that returns {'v0': 0} as a binding for these two examples by making some sort of "best guess", but for a first pass let's assume there needs to be a perfect match of non-variable parts of the partial data for match to return any bindings (this may be enough when abstraction over prior data is added since matching against abstractions of prior data might have the same effect as making a best guess).  
 
-
-
 We still must consider what to do when there are several possible valid matches.  An example being
 #+name: example_data_many_matches
 #+begin_src python  
-  partial_data = ['v0', 0, 'v1']
+  partial_data = [0, 'v0', 0, 'v1']
   prior_data = [0,1,0,1,0,1,0,1]
   
-  valid_binding0 = {'v0': [0,1,0,1], 'v1': [1,0,1]}
-  valid_binding1 = {'v0': [0,1], 'v1': [1,0,1,0,1]}
+  valid_binding0 = {'v0': [1,0,1], 'v1': [1,0,1]}
+  valid_binding1 = {'v0': [1], 'v1': [1,0,1,0,1]}
 #+end_src
 
-What is the return type for match? Perhaps a single binding out of the possibly many bindings.  Maybe all the bindings.  In addition to the binding(s) it might also be useful to return some sort of score with the binding so that we may distinguish between the quality of different bindings.  What are the consequences of the different return types in the broader context of finding a solution to an inference problem?  
+What is the return type for match? If there is no match then None should be returned.  Perhaps a single binding out of the possibly many bindings.  Maybe all the bindings.  In addition to the binding(s) it might also be useful to return some sort of score with the binding so that we may distinguish between the quality of different bindings.  What are the consequences of the different return types in the broader context of finding a solution to an inference problem?  
 
-This raises another question worth asking about match is wether it should try to match to any part of the prior data or just the top level. E.g.
+This raises another question worth asking about match is whether it should try to match to any part of the prior data or just the top level. E.g.
 #name: example_sub_matching
 #+begin_src python
   partial_data = [1,0,'v0']
@@ -243,24 +241,81 @@ This raises another question worth asking about match is wether it should try to
   
   sub_match = {'v0', [1]}
 #+end_src
-Where the sub_match occurs from partial_data being matched to the third element of prior_data.  This is an interesting question because if this is the case then rather than viewing a solution to an inference problem as trying to match to each individual prior piece of data we can view the prior data as one large piece of data and solving the inference problem is a matter of finding a match of the partial_data to this single prior data object.
-
-
+Where the sub_match occurs from partial_data being matched to the third element of prior_data.  This is an interesting question because if this is the case then rather than viewing a solution to an inference problem as trying to match to each individual prior piece of data we can view the prior data as one large piece of data and solving the inference problem is a matter of finding a match of the partial_data to this single prior data object.  Either way we'll still probably want a function which matches only the top-level even if it's just a helper function.
 
 In all cases it seems natural that the return of a matching should be a function of matching the individual elements of the partial data.  The possible types to be matched are primitives, variables, and lists.  
 
-#+name: simple-match
+#+name: structure_for_match
 #+begin_src python :noweb yes
- 
+  def match(partial_data, prior_data):
+      if is_variable(partial_data):
+          <<return a positive match binding the variable to the prior_data>>
+      elif isSymbol(partial_data):
+          if partial_data == prior_data:
+              <<return a positive match>>
+          else:
+              <<return negative match>>
+      else:
+          assert(isinstance(partial_data, list))
+          #add case for when prior_data is empty list?
+          if isisntance(prior_data, list) and len(prior_data) >= partial_data:
+              <<list_case_for_match>>
+          else:
+              <<return negative match>>
 #+end_src
 
-Let's look at the four possible return types we've listed so far
+The interesting case is when the partial_data is a list.  Let's use the data in example_data_many_matches to guide development of the algorithm.  For now we'll assume matching of the elements occurs via iteration over the list from left to right.  It's not clear why it would be beneficial to do so otherwise, but we'll tag this [DD] (design decision) and can revisit things aren't working.  
+
+It's been asserted that the partial_data is a list, but before we start iterating through and matching elements there are a few checks on the prior_data we can do that would imply there is no match mainly if it is not a list or two small i.e. if there are not enough elements to match with partial_data.
+
+Matching elements is kind of tricky because variables in the partial_data can match multiple elements of the corresponding prior_data so let's separate these two cases as we iterate through the partial data.
+
+#+name: list_case_for_match
+#+begin_src python :noweb yes
+  matches = []
+  for i,element in enumerate(partial_data):
+      if is_variable(element):
+          <variable_case_list_case_for_match>
+      else:
+          matches.append(match(element, prior_data[i]))
+  <combine element matches and return>
+#+end_src
+
+Here is an example of when the current/first element of the partial_data is a variable.
+#+name: variable_case_matching_list_example
+#+begin_src python :noweb yes
+  partial_data = ['v0', 0, 'v1']
+  prior_data = [1,0,1,0,1,0,0,1]
+  #bindings for v0
+  possible_binding0 = {'v0': [1], 'v1': [1,0,1,0,0,1]}
+  possible_binding1 = {'v0': [1,0,1], 'v1': [0,1,0,0,1]}
+  possible_binding2 = {'v0': [1,0,1,0,1], 'v1': [0,1]}
+#+end_src
+The pattern seems to be v0 can match to any prefix of the prior_data ([1], [1,0,1], [1,0,1,0,1]) that ends before the next character in the partial_data after the variable (0).
+
+It's worth noting the choice for the variable match affects matches for later variables so this should be factored in when understanding what the return type is for match and how different possibilities are handled when matching a variable.
+#+name: variable_case_list_case_for_match
+#+begin_src python :noweb yes
+  if element == partial_data[-1]:
+      <match_all_prefixes>
+  else:
+      next_element = partial_data[i+1]
+      try:
+          index_in_prior = prior_data.index(next_element)
+          <match prefixes up to index_in_prior>
+      except ValueError:
+          return None
+  
+#+end_src
+
 ******* single binding no score
 ******* multiple bindings no score
 ******* single binding with score
 ******* multiple bindings with score
 
-Furthmore we can define types of lists as lists with variables in the top level, lists with variables in a deeper level, and lists without variables.  Now if we pair these possibilities 
+  def match(partial_data, prior_data):
+      
+  Furthmore we can define types of lists as lists with variables in the top level, lists with variables in a deeper level, and lists without variables.  Now if we pair these possibilities 
 
 
 
