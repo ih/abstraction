@@ -249,19 +249,19 @@ In all cases it seems natural that the return of a matching should be a function
 #+begin_src python :noweb yes
   def match(partial_data, prior_data):
       if is_variable(partial_data):
-          <<return a positive match binding the variable to the prior_data>>
+          <<match_variable_case>>
       elif isSymbol(partial_data):
           if partial_data == prior_data:
-              <<return a positive match>>
+              <<match_symbol_equal_case>>
           else:
-              <<return negative match>>
+              <<match_symbol_not_equal_case>>
       else:
           assert(isinstance(partial_data, list))
-          #add case for when prior_data is empty list?
           if isisntance(prior_data, list) and len(prior_data) >= partial_data:
-              <<list_case_for_match>>
+              #combine the results of matching the individual elements
+              <<match_list_case>>
           else:
-              <<return negative match>>
+              <<match_list_no_match>>
 #+end_src
 
 The interesting case is when the partial_data is a list.  Let's use the data in example_data_many_matches to guide development of the algorithm.  For now we'll assume matching of the elements occurs via iteration over the list from left to right.  It's not clear why it would be beneficial to do so otherwise, but we'll tag this [DD] (design decision) and can revisit things aren't working.  
@@ -270,15 +270,15 @@ It's been asserted that the partial_data is a list, but before we start iteratin
 
 Matching elements is kind of tricky because variables in the partial_data can match multiple elements of the corresponding prior_data so let's separate these two cases as we iterate through the partial data.
 
-#+name: list_case_for_match
+#+name: match_list_case
 #+begin_src python :noweb yes
   matches = []
   for i,element in enumerate(partial_data):
       if is_variable(element):
-          <variable_case_list_case_for_match>
+          <<match_list_case_variable_case>>
       else:
           matches.append(match(element, prior_data[i]))
-  <combine element matches and return>
+  <<match_list_case_combine_elements>>
 #+end_src
 
 Here is an example of when the current/first element of the partial_data is a variable.
@@ -294,21 +294,61 @@ Here is an example of when the current/first element of the partial_data is a va
 The pattern seems to be v0 can match to any prefix of the prior_data ([1], [1,0,1], [1,0,1,0,1]) that ends before the next character in the partial_data after the variable (0).
 
 It's worth noting the choice for the variable match affects matches for later variables so this should be factored in when understanding what the return type is for match and how different possibilities are handled when matching a variable.
-#+name: variable_case_list_case_for_match
+
+In the case where the current variable element is also the last element then it should be bound to the remaining prior_data.
+
+In the case where there is a next element after the current variable element then we can match the variable to any prefix in the prior_data where the element after the last element of the prefix matches the next element in the partial_data, just like in variable_case_matching_list_example for v0.  There is an additional constraint that the remaining prior data after the match must be of greater size than the remaining partial_data.
+#+name: match_list_case_variable_case
 #+begin_src python :noweb yes
   if element == partial_data[-1]:
-      <match_all_prefixes>
+      <<match_list_case_variable_case_no_next_element>>
   else:
       next_element = partial_data[i+1]
       try:
-          index_in_prior = prior_data.index(next_element)
-          <match prefixes up to index_in_prior>
+          <<possible_prior_data_matches>>
+          <<match_list_case_variable_case_has_next_element>>
       except ValueError:
           return None
   
 #+end_src
-
+At this point it's probably a good idea to look at the different possibilites for the return type of matching so we can fill in the missing pieces.
 ******* single binding no score
+There are a couple ways to handle returning a single match.  For now if there is more than one choice we'll select one at random.
+#+name: match_variable_case
+#+begin_src python :noweb yes
+  return {partial_data: prior_data}
+#+end_src
+
+#+name: match_symbol_equal_case
+#+begin_src python :noweb yes
+  return {}
+#+end_src
+
+#+name: match_symbol_not_equal_case
+#+begin_src python :noweb yes
+  return None
+#+end_src
+
+#+name: match_list_no_match
+#+begin_src python :noweb yes
+  return None 
+#+end_src
+
+#+name: match_list_case_variable_case_no_next_element
+#+begin_src python :noweb yes
+  matches.append({element : prior_data[i:]})
+#+end_src
+
+#+name: match_list_case_variable_case_has_next_element
+#+begin_src python :noweb yes
+
+#+end_src
+
+#+name: match_list_case_combine_elements
+#+begin_src python :noweb yes
+
+#+end_src
+
 ******* multiple bindings no score
 ******* single binding with score
 ******* multiple bindings with score
