@@ -305,7 +305,6 @@ In the case where there is a next element after the current variable element the
   else:
       next_element = partial_data[i+1]
       try:
-          <<possible_prior_data_matches>>
           <<match_list_case_variable_case_has_next_element>>
       except ValueError:
           return None
@@ -314,10 +313,13 @@ In the case where there is a next element after the current variable element the
 At this point it's probably a good idea to look at the different possibilites for the return type of matching so we can fill in the missing pieces.
 ******* single binding no score
 There are a couple ways to handle returning a single match.  For now if there is more than one choice we'll select one at random.
+
+
 #+name: match_variable_case
 #+begin_src python :noweb yes
   return {partial_data: prior_data}
 #+end_src
+
 
 #+name: match_symbol_equal_case
 #+begin_src python :noweb yes
@@ -339,15 +341,38 @@ There are a couple ways to handle returning a single match.  For now if there is
   matches.append({element : prior_data[i:]})
 #+end_src
 
-#+name: match_list_case_variable_case_has_next_element
-#+begin_src python :noweb yes
-
-#+end_src
-
 #+name: match_list_case_combine_elements
 #+begin_src python :noweb yes
 
 #+end_src
+
+
+The interesting case is when partial_data is a list and we encounter a variable.  We want to find a prefix of the prior_data that can bind to the variable such that what comes after the variable and the prefix also match.
+
+#+name: match_list_case_variable_case_has_next_element
+#+begin_src python :noweb yes
+  
+  #iterate through the prefixes of prior_data and capture the possible results of matching hte variable to it
+  possible_prefix_matches = []
+  prior_data_prefixes = [prior_data[i:j] for j in range(i,len(prior_data))]
+  for j in range(i,len(prior_data)):
+      possible_prefix = prior_data[i: j]
+      variable_match = {element: possible_prefix}
+      #this recursive call to match results in a lot of redundant work? memoize? or perhaps this is the only case and needed and this should be the whole match_list_case
+      match_after_prefix = match(partial_data[i+1:], prior_data[j:])
+      #combine_matches defined in match_list_case_combine_elements
+      possible_match = combine_matches(variable_match, match_after_prefix)
+      if possible_match != None:
+          possible_prefix_matches.append(possible_match)
+  return random.choice(possible_prefix_matches)
+#+end_src
+
+In the case where partial_data is a list we're iterating through and we've arrived at a variable that isn't the end of a list, we can match the variable to several 
+#+name: 
+#+begin_src python :noweb yes
+
+#+end_src
+
 
 ******* multiple bindings no score
 ******* single binding with score
