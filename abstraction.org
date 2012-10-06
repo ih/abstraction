@@ -31,10 +31,10 @@ A simple (but expected to be poor performing) algorithm for the inference proble
 
 Even though it's not hard to think of cases where this algorithm won't work, we start with this problem to build up some of the general infrastructure for modeling inference and abstraction and make the idea of modeling intelligence as inference on lists more concrete.
 
-**** Storing data
+**** TODO Storing data
 The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now, but use a layer of abstraction to manipulate it.
 #+name: memory
-#+begin_src python 
+#+begin_src python :tangle yes
   class Memory:
       memory = []
       def add(self, data):
@@ -79,7 +79,7 @@ Now that we have a way to hold prior data we want to be able to use that data to
 An inference problem can be described as a list with some variables that represent unknown parts of the list.  Elements of the list can be either lists, symbols, or variables.  In code the class might look like
 
 #+name: inference_problem
-#+begin_src python 
+#+begin_src python :tangle yes
   class InferenceProblem:
       #variables that might appear in partial_data
       variables = []
@@ -93,13 +93,14 @@ An inference problem can be described as a list with some variables that represe
 
 We could make the typing more explicit by performing checks during instantiation of the class, but we'll leave it unless this becomes an issue.
 
+It's also worth noting that an inference problem is essentially the same thing as an abstraction.  Perhaps we'll use some kind of type aliasing if it becomes helpful when we explore abstraction-based approaches to inference.
+
 ****** Binary Data Inference Problems
 ******* Classification
 One example of an inference problem is classification of binary data.  Suppose we have some data from either pattern0 or pattern1 above as shown earlier and we want to infer the pattern it came from, we can create a problem like so
 #+name: binary_data_classification_problems
 #+begin_src python :results output :noweb yes :tangle yes
-  <<inference_problem>>
-  
+
   classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
   classify_problem1 = InferenceProblem(['v0'], [[1,1,1,0,0,0], 'v0'])
 
@@ -189,7 +190,6 @@ How do we tell if one solution is better than the other?  So given
 #+end_src 
 If we have an algorithm that has a choice between {'v0', [0,0,1]} and {'v0, [1,1,1]}, how does one compare the two solutions.  It's not clear, but this seems to be something that depends on the algorithm implementation rather than the problem specification.  In terms of the problem either the solution is incorrect or correct and in this case both solutions are incorrect since they don't match the true solution.
 
-
 ***** Algorithm for Inference
 This section will describe more formally the simple algorithm for trying to solve inference problems introduced in the section "First Approximation."  Recall the idea is to create a solution, i.e. binding of variables, based on matching the partial data of the inference problem to previously seen data.  Another way to phrase it is we want to find an environment where the the partial data is the same as some prior data we've seen.
 
@@ -197,16 +197,13 @@ The process of matching seems like unification (http://en.wikipedia.org/wiki/Uni
 
 Suppose our prior data consists of pattern0 i.e. we have executed the add_pattern0_to_memory code block and now we are faced with classify_problem0.  We want to try and match the partial data of classify_problem0 to the data we've already seen then use that to create a solution.
 ****** Matching
+******* Implementation
 Let's look at the pairing of partial data to previous data
 #+name: iterate_match
-#+begin_src python :results output :noweb yes :tangle yes
-  <<test_memory>>
+#+begin_src python :results output :noweb yes :tangle no
   <<binary_data_classification_problems>>
-  
+  <<add_patter0_to_memory>>
   #TODO define an iterator for Memory to go through the saved data
-  for prior_data in Memory.memory
-    <<add_pattern0_to_memory>>
-  <<binary_data_classification_problems>>
   
   for memory in memory.memory:
       print classify_problem0.partial_data, memory
@@ -287,7 +284,7 @@ Matching elements is kind of tricky because variables in the partial_data can ma
 #+end_src
 
 At this point it's probably a good idea to look at the different possibilites for the return type of matching so we can fill in the missing pieces.
-******* single binding no score
+******** single binding no score
 There are a couple ways to handle returning a single match.  For now if there is more than one choice we'll select one at random.
 
 We were last looking at the list case of match, i.e.  matching elements of the partial_data to  elements of the  prior_data.  Here is an example of when the current/first element of the partial_data is a variable.
@@ -378,10 +375,40 @@ The non-list cases for match are fairly straight-forward.
   return None 
 #+end_src
 
+We need to define a few helper functions in order to run match.  For the type check of whether something is a variable we'll assume for now that variables come in the form 'v' combined with a number e.g. 'v0', 'v142', 'v99'
+#+name: is_variable
+#+begin_src python :noweb yes :tangle yes
+  def is_variable(thing):
+      return isinstance(thing, str) and thing[0] == 'v' \
+        and thing[1:].isdigit()
+    
+#+end_src
 
-******* multiple bindings no score
-******* single binding with score
-******* multiple bindings with score
+
+#+name: is_variable_test
+#+begin_src python :results output :noweb yes
+  <<is_variable>>
+  
+  print is_variable('v0')
+  print is_variable('0')
+  print is_variable('v302')
+  
+#+end_src
+
+#+RESULTS: is_variable_test
+: True
+: False
+: True
+
+For symbols we'll assume a symbol is anything not a list.
+#+name: is_symbol
+#+begin_src python :noweb yes :tangle yes
+  def is_symbol(thing):
+      return not isinstance(thing, list)
+#+end_src
+******** multiple bindings no score
+******** single binding with score
+******** multiple bindings with score
 
   def match(partial_data, prior_data):
       
@@ -390,5 +417,32 @@ The non-list cases for match are fairly straight-forward.
 
 
 TODO look at the case where pattern1 has been added to memory.
-******* Returning a set of possible bindings
-****** Creating a binding
+******** Returning a set of possible bindings
+******* Testing
+Now that we have an implementation let's try it on some of the examples from earlier starting with the binary data at the beginning of the document.  Recall we'll be trying to apply match to the partial data of an inference problem and the prior data we've stored in memory.  An example of data in memory could be the bit patterns in pattern0
+
+#+begin_src python :noweb yes :results output 
+  <<binary_data>>
+  for pattern in pattern0:
+      print pattern
+#+end_src
+
+#+RESULTS:
+: [[1], 0]
+: [[1, 1], 0]
+: [[1, 1, 1, 1, 1], 0]
+: [[1, 1], 0]
+
+An example of prior data from an inference problem could be 
+#+begin_src python :noweb yes :results output
+  <<inference_problem>>
+  <<binary_data_classification_problems>>
+  print classify_problem0.partial_data
+#+end_src
+
+#+RESULTS:
+: [[1, 1, 1, 1], 'v0']
+
+Let's suppose 
+****** Problem-solving loop
+***** Applying the Inference Algorithm
