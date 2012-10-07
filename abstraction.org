@@ -312,7 +312,7 @@ In the case where the current variable element is also the last element then it 
   if partial_data_element == partial_data[-1]:
       matches.append({partial_data_element : prior_data[prior_data_position:]})
   else:
-      next_element = partial_data[i+1]
+      next_element = partial_data[partial_data_position+1]
       try:
           <<match_list_case_variable_case_has_next_element>>
       except ValueError:
@@ -327,23 +327,31 @@ In the example variable_case_matching_list_example if element is 'v0' then next_
 #+name: match_list_case_variable_case_has_next_element
 #+begin_src python :noweb yes 
   #iterate through the prefixes of prior_data and capture the possible results of matching the variable to it
-  variable = element
+  variable = partial_data_element
   #remember the possible variable bindings along with the corresponding prior_data_position
   possible_variable_bindings = []
   last_position_to_check = len(prior_data[prior_data_position+2:])
   #positions in the prior_data where the prior_data element matches the partial_data element that
   #comes after the variable that is being bound
-  matching_positions = [i for i in range(prior_data[prior_data_position+1:-last_position_to_check])
+  matching_positions = [i for i in range(len(prior_data[prior_data_position+1:last_position_to_check]))
                         if prior_data[i] == next_element]
   
+  if len(matching_positions) > 0:
+      chosen_match_position = random.choice(matching_positions)
+      #bind the prefix of prior_data that ends just before chosen_match_position
+      variable_binding = {variable: prior_data[prior_data_position: chosen_match_position]}
+      #skip ahead prior_data_position to the point after the prefix that gets bound to the variable
+      prior_data_position = chosen_match_position
   
-  chosen_match_position = random.choice(matching_positions)
-  #bind the prefix of prior_data that ends just before chosen_match_position
-  variable_binding = {variable: prior_data[prior_data_position: chosen_match_position]}
-  #skip ahead prior_data_position to the point after the prefix that gets bound to the variable
-  prior_data_position = chosen_match_position
-  
-  matches.append(variable_binding)
+      matches.append(variable_binding)
+  else:
+      matches.append(None)
+#+end_src
+
+We'll need to include the random library when tangling, but what is the best way to do this?
+#+name: libs
+#+begin_src python :noweb yes :tangle yes
+import random
 #+end_src
 
 The final part of the match case for lists is combining the matches for the elements in the list.  This means making sure none of the matches were invalid (i.e. had value None) and if everything is ok then merging all the bindings into a single dictionary to be returned.
@@ -451,13 +459,21 @@ An example of prior data from an inference problem could be
 
 Applying match to a case where it should match and shouldn't match would like the following
 
-#+begin_src python :noweb yes :tangle yes :results output
+#+begin_src python :noweb yes :tangle no :results output
   print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
   
   print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
 #+end_src
 
-Let's suppose 
+#+RESULTS
+: {'v0': [0]}
+: None
+
+We'll also want to look at the cases where matching can have several possibilities such as in variable_case_matching_list_example.
+
+#+begin_src python :noweb yes :tangle yes
+  print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1])
+#+end_src
 
 ****** Problem-solving loop
 ***** Applying the Inference Algorithm
