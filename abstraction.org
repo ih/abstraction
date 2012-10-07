@@ -247,14 +247,14 @@ In all cases it seems natural that the return of a matching should be a function
   def match(partial_data, prior_data):
       if is_variable(partial_data):
           <<match_variable_case>>
-      elif isSymbol(partial_data):
+      elif is_symbol(partial_data):
           if partial_data == prior_data:
               <<match_symbol_equal_case>>
           else:
               <<match_symbol_not_equal_case>>
       else:
           assert(isinstance(partial_data, list))
-          if isinstance(prior_data, list) and len(prior_data) >= partial_data:
+          if isinstance(prior_data, list) and len(prior_data) >= len(partial_data):
               #combine the results of matching the individual elements
               <<match_list_case>>
           else:
@@ -271,14 +271,20 @@ Matching elements is kind of tricky because variables in the partial_data can ma
 #+begin_src python :noweb yes 
   matches = []
   prior_data_position = 0
-  for partial_data_position, partial_data_element in enumerate(partial_data)
-      if is_variable(element):
+  for partial_data_position, partial_data_element in enumerate(partial_data):
+      if is_variable(partial_data_element):
           #this case will need to increment prior_data_position appropriately
           #possibly several steps ahead of partial_data_position
           <<match_list_case_variable_case>>
       else:
-          matches.append(match(element, prior_data[prior_data_position]))
-          prior_data_position += 1
+          #if it's the last element of partial data and there is more than one element left in
+          #prior data then it's not a match
+          if partial_data_position == len(partial_data) - 1 and\
+            len(prior_data[prior_data_position:]) > 1:
+              return None
+          else:
+              matches.append(match(partial_data_element, prior_data[prior_data_position]))
+              prior_data_position += 1
   <<match_list_case_combine_matches>>
   
 #+end_src
@@ -303,8 +309,8 @@ In the case where the current variable element is also the last element then it 
 
 #+name: match_list_case_variable_case
 #+begin_src python :noweb yes 
-  if element == partial_data[-1]:
-      matches.append({element : prior_data[prior_data_position:]})
+  if partial_data_element == partial_data[-1]:
+      matches.append({partial_data_element : prior_data[prior_data_position:]})
   else:
       next_element = partial_data[i+1]
       try:
@@ -349,7 +355,7 @@ The final part of the match case for lists is combining the matches for the elem
       #TODO handle case of same variable appearing in multiple places in the list
       all_bindings = {}
       for bindings in matches:
-          all_bindings = all_bindings.items() + bindings.items()
+          all_bindings = dict(all_bindings.items() + bindings.items())
       return all_bindings
 #+end_src
 
@@ -443,6 +449,15 @@ An example of prior data from an inference problem could be
 #+RESULTS:
 : [[1, 1, 1, 1], 'v0']
 
+Applying match to a case where it should match and shouldn't match would like the following
+
+#+begin_src python :noweb yes :tangle yes :results output
+  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
+  
+  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
+#+end_src
+
 Let's suppose 
+
 ****** Problem-solving loop
 ***** Applying the Inference Algorithm
