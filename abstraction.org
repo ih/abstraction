@@ -302,8 +302,9 @@ We were last looking at the list case of match, i.e.  matching elements of the p
   possible_binding0 = {'v0': [1], 'v1': [1,0,1,0,0,1]}
   possible_binding1 = {'v0': [1,0,1], 'v1': [0,1,0,0,1]}
   possible_binding2 = {'v0': [1,0,1,0,1], 'v1': [0,1]}
+  possible_binding3 = {'v0': [1,0,1,0,1,0], 'v1':[1]}
 #+end_src
-The pattern seems to be v0 can match to any prefix of the prior_data ([1], [1,0,1], [1,0,1,0,1]) that ends before the next character in the partial_data after the variable (0).
+The pattern seems to be v0 can match to any prefix of the prior_data ([1], [1,0,1], [1,0,1,0,1], [1,0,1,0,1,0]) that ends before the next character in the partial_data after the variable (0).
 
 In the case where the current variable element is also the last element then it should be bound to the remaining prior_data.
 
@@ -320,9 +321,9 @@ In the case where the current variable element is also the last element then it 
   
 #+end_src
 
-In the case where there is a next element after the current variable element then we can match the variable to any prefix in the prior_data where the element after the last element of the prefix matches the next element in the partial_data, just like in variable_case_matching_list_example for v0.  There is an additional constraint that the remaining prior data after the match must be of greater size than the remaining partial_data.
+In the case where there is a next element after the current variable element then we can match the variable to any prefix in the prior_data where the element after the last element of the prefix matches the next element in the partial_data, just like in variable_case_matching_list_example for v0.  There is an additional constraint that the remaining prior data after the match must be of greater size than the remaining partial_data and we can ensure this holds by only looking for matches in prior_data up until the position for which the remaining prior_data is the same size as the remaining partial_data.
 
-In the example variable_case_matching_list_example if element is 'v0' then next_element is 0 so we want to find all the positions in prior_data ([1,0,1,0,1,0,0,1]) of 0s e.g. 1, 3, 4, 5, such that there are enough remaining elements in prior_data to match the remaining partial_data.  So for position 1 in prior_data we need to check that len(prior_data[2:]) >= len(partial_data[2:]), which it is.  The only case this isn't true is for prior_data position 5.  We can do this by iterating through prior_data from the current prior_data_position to len(prior_data[prior_data_position+2:]) - len(partial_data[partial_data_position+2:])  
+In the example variable_case_matching_list_example if element is 'v0' then next_element is 0 so we want to find all the positions in prior_data ([1,0,1,0,1,0,0,1]) of 0s e.g. 1, 3, 4, 5, such that there are enough remaining elements in prior_data to match the remaining partial_data. The amount of remaining partial_data is 1 (just the 'v1' element).  If we only look at positions in the prior_data before prior_data[-1:] then any match will have at least 1 element left in prior_data to match the remaining element in the partial_data.
 
 #+name: match_list_case_variable_case_has_next_element
 #+begin_src python :noweb yes 
@@ -330,17 +331,17 @@ In the example variable_case_matching_list_example if element is 'v0' then next_
   variable = partial_data_element
   #remember the possible variable bindings along with the corresponding prior_data_position
   possible_variable_bindings = []
-  last_position_to_check = len(prior_data[prior_data_position+2:])
+  amount_remaining_needed = len(partial_data[partial_data_position+2:])
   #positions in the prior_data where the prior_data element matches the partial_data element that
   #comes after the variable that is being bound
-  matching_positions = [i for i in range(len(prior_data[prior_data_position+1:last_position_to_check]))
+  matching_positions = [i for i in range(len(prior_data[prior_data_position+1:-amount_remaining_needed-1]))
                         if prior_data[i] == next_element]
   
   if len(matching_positions) > 0:
       chosen_match_position = random.choice(matching_positions)
       #bind the prefix of prior_data that ends just before chosen_match_position
       variable_binding = {variable: prior_data[prior_data_position: chosen_match_position]}
-      #skip ahead prior_data_position to the point after the prefix that gets bound to the variable
+      #skip ahead prior_data_position to the point of the match since that will be the next element in the iteration over partial_data
       prior_data_position = chosen_match_position
   
       matches.append(variable_binding)
@@ -472,7 +473,8 @@ Applying match to a case where it should match and shouldn't match would like th
 We'll also want to look at the cases where matching can have several possibilities such as in variable_case_matching_list_example.
 
 #+begin_src python :noweb yes :tangle yes
-  print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1])
+  for i in range(10):
+      print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
 #+end_src
 
 ****** Problem-solving loop
