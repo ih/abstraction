@@ -334,7 +334,7 @@ In the example variable_case_matching_list_example if element is 'v0' then next_
   amount_remaining_needed = len(partial_data[partial_data_position+2:])
   #positions in the prior_data where the prior_data element matches the partial_data element that
   #comes after the variable that is being bound
-  matching_positions = [i for i in range(len(prior_data[prior_data_position+1:-amount_remaining_needed-1]))
+  matching_positions = [i for i in range(prior_data_position+1,len(prior_data[prior_data_position+1:-amount_remaining_needed])+1)
                         if prior_data[i] == next_element]
   
   if len(matching_positions) > 0:
