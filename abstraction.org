@@ -99,7 +99,7 @@ It's also worth noting that an inference problem is essentially the same thing a
 ******* Classification
 One example of an inference problem is classification of binary data.  Suppose we have some data from either pattern0 or pattern1 above as shown earlier and we want to infer the pattern it came from, we can create a problem like so
 #+name: binary_data_classification_problems
-#+begin_src python :results output :noweb yes :tangle yes
+#+begin_src python :results output :noweb yes :tangle no
 
   classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
   classify_problem1 = InferenceProblem(['v0'], [[1,1,1,0,0,0], 'v0'])
@@ -112,7 +112,7 @@ The solution for classify_problem0 being v0 is [0] and the solution for classify
 Another type of problem would be to infer parts of the binary data given we know the pattern e.g.
 
 #+name: binary_data_completion_problems
-#+begin_src python :results output :noweb yes :tangle yes
+#+begin_src python :results output :noweb yes :tangle 
   complete_problem0 = InferenceProblem(['v0'], [[1,1,1,'v0'], 1])
   complete_problem1 = InferenceProblem(['v0', 'v1'], [['v0', 1, 'v1'], 0])
 #+end_src
@@ -333,7 +333,7 @@ In the example variable_case_matching_list_example if element is 'v0' then next_
   possible_variable_bindings = []
   amount_remaining_needed = len(partial_data[partial_data_position+2:])
   #positions in the prior_data where the prior_data element matches the partial_data element that
-  #comes after the variable that is being bound
+  #comes after the variable that is being bound, look at all the positions in prior_data after the current and up to before the tail of prior where the tail is as long as the remaining partial_data
   matching_positions = [i for i in range(prior_data_position+1,len(prior_data[prior_data_position+1:-amount_remaining_needed])+1)
                         if prior_data[i] == next_element]
   
@@ -472,10 +472,105 @@ Applying match to a case where it should match and shouldn't match would like th
 
 We'll also want to look at the cases where matching can have several possibilities such as in variable_case_matching_list_example.
 
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   for i in range(10):
       print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
 #+end_src
 
+#+RESULTS
+: {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1], 'v1': [1, 0, 1, 0, 0, 1]}
+: {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]}
+
+Let's take these solutions and substitute them back into the partial data and verify they match the prior data.
+
+#+begin_src python :noweb yes
+for i in range(10):
+    binding = match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1])
+    print substitute(['v0', 0, 'v1'], binding)
+#+end_src
+
+#+RESULTS
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+: [1, 0, 1, 0, 1, 0, 0, 1]
+
+Now that we have one version of the match function (return single binding, no score), let's move on to complete the loop and return to other versions when the need arises.
 ****** Problem-solving loop
+The original first/naive approach for solving inference problems was to iterate through the prior data and try to find any matches with the partial data.  We'll now formalize this process.  Let's define a class to organize the problem solving functions and data structures.  We'll call it an agent.  It has a memory and a function for taking in inference problems and returning a solution.
+
+#+name: agent
+#+begin_src python :noweb yes :tangle yes
+  class Agent:
+      def __init__(self):
+          self.memory = Memory()
+  
+      def solve(self, inference_problem):
+          <<agent_solve>>
+#+end_src
+
+In order to solve an inference problem, we'll first extract the partial_data then match it against everything in memory.  To keep things simple we'll return a random binding [DD] or None if no solution was found.
+
+#+name: agent_solve
+#+begin_src python :noweb yes
+  solutions = [match(inference_problem.partial_data, prior_data)
+               for prior_data in self.memory.memory]
+  
+  solutions = [solution for solution in solutions if solution != None]
+  if solutions == []:
+      return None
+  else:
+      return random.choice(solutions)
+#+end_src
+
+We can test the function on the original inference problem examples and binary data.
+
+#+begin_src python :noweb yes :tangle yes
+    <<binary_data>>
+    <<binary_data_classification_problems>>
+    <<binary_data_completion_problems>>
+  
+    agent = Agent()
+    [agent.memory.add(data) for data in pattern0+pattern1]
+    print 'In memory %s' % agent.memory.memory
+  
+    problems = [classify_problem0, classify_problem1, complete_problem0, complete_problem1]
+    for problem in problems:
+        print 'problem: %s' % problem.partial_data
+        solution = agent.solve(problem)
+        print 'solution: %s' % solution
+        if solution is not None:
+            print 'completion: %s' % substitute(problem.partial_data, solution)
+  
+#+end_src
+
+#+RESULTS
+: In memory [[[1], 0], [[1, 1], 0], [[1, 1, 1, 1, 1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 1, 1, 1, 0, 0, 0, 0], 1]]
+: 
+: problem: [[1, 1, 1, 1], 'v0']
+: solution: None
+: problem: [[1, 1, 1, 0, 0, 0], 'v0']
+: solution: {'v0': [1]}
+: completion: [[1, 1, 1, 0, 0, 0], 1]
+: problem: [[1, 1, 1, 'v0'], 1]
+: solution: {'v0': [1, 0, 0, 0, 0]}
+: completion: [[1, 1, 1, 1, 0, 0, 0, 0], 1]
+: problem: [['v0', 1, 'v1'], 0]
+: solution: {'v0': [1, 1, 1], 'v1': [1]}
+: completion: [[1, 1, 1, 1, 1], 0]
+
 ***** Applying the Inference Algorithm
