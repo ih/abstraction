@@ -573,4 +573,13 @@ We can test the function on the original inference problem examples and binary d
 : solution: {'v0': [1, 1, 1], 'v1': [1]}
 : completion: [[1, 1, 1, 1, 1], 0]
 
-***** Applying the Inference Algorithm
+***** Reflections
+We won't go into depth testing this first approach on a wide variety of data since the main point was to work out some of the details for the setup of solving inference problems.  The major limitation of the algorithm was the inability to generalize.  An example was the problem [[1, 1, 1, 1], 'v0'] which intuitively has a solution of {'v0', [1]}.  One possible solution is to use abstraction, which we'll explore in the rest of the document. [add explanation on how abstraction can help]
+*** Second Approximation
+Our next attempt to solve inference problems will utilize the power of abstraction.  [give some intuitive examples of where abstraction is useful e.g. hierachical planning, etc].  The plan is
+
+1) come up with a few additional inference problems staying with the same two patterns used in binary_data_classfiication_problems and binary_data_completion_problems; these will be used as references while developing the details of the algorithm
+2) formally define a process of abstraction based on the lambda abstraction in lambda calculus
+3) work out details of how abstraction happens when new data is added to memory as well as how data is stored
+4) work out details for matching partial data to possibily abstract data in the memory
+5) work out details of how matching is used in the larger problem solving routine
