@@ -583,3 +583,48 @@ Our next attempt to solve inference problems will utilize the power of abstracti
 3) work out details of how abstraction happens when new data is added to memory as well as how data is stored
 4) work out details for matching partial data to possibily abstract data in the memory
 5) work out details of how matching is used in the larger problem solving routine
+
+
+**** More Inference Problems
+The previous set of problems had one example problem that could not be solved by matching directly to prior data.  We'll give a few more examples here to both guide development and test the abstraction approach.
+
+#+name: additional_binary_classification_problems
+#+begin_src python :noweb yes
+  classify_problem2 = InferenceProblem(['v0'], [[1,1,1,1,1,1,1,1,1,1,1,1,1], 'v0'])
+  classify_problem3 = InferenceProblem(['v0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'v0'])
+  
+#+end_src
+
+#+name: additional_binary_completion_problems
+#+begin_src python :noweb yes
+  completion_problem2 = InferenceProblem(['v0'], [[1,'v0'], 1])
+#+end_src
+
+We'll also add in more prior_data to make the patterns more salient.
+#+name: additional_prior_data
+#+begin_src python :noweb yes
+  more_pattern0 = [[[2,2], 0], [[3,3,3,3,3], 0], [[5,5,5,5,5,5,5], 0]]
+  questionable_pattern0 = [[[1,0,1,0,1,0,1,0], 0], [[1,2,3,1,2,3,1,2,3,1,2,3], 0]]
+  
+  more_pattern1 = [[[5,5,5,6,6,6],1], [[3,3,2,2],1]]
+#+end_src
+
+And pose problems that test this different type of abstraction.
+#+name: surface_level_abstraction_problems
+#+begin_src python :noweb yes
+  classify_problem4 = InferenceProblem(['v0'], [[8,8,8,8,8], 'v0'])
+  classify_problem5 = InferenceProblem(['v0'], [[2,2,2,2,2,2,1,1,1,1,1,1], 'v0']
+  
+  classify_problem6 = InferenceProblem(['v0'], [[4,4,5,5,4,4,5,5,4,4,5,5], 'v0']
+  
+  completion_problem4 = InferenceProblem(['v0', 'v1'], [[5, 'v0', 6, 'v1'], 1])
+  completion_problem5 = InferenceProblem(['v0'], [['v0',9,9,9], 0])
+  
+  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'v0',1,4,1], 'v0'])
+  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'v0'], 'v0'])
+#+end_src
+
+
+
+**** The process of abstraction
+The notion of abstraction we'll be using is very similar to the concept of lambda abstraction in the lambda calculus.  Creating abstractions from data will be similar to the process of anti-unification.  The major adaptation will be to accomodate the fact that variables can be lists of elements that can increase the length of the list that contains the variable.
