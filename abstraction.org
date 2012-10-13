@@ -627,4 +627,35 @@ And pose problems that test this different type of abstraction.
 
 
 **** The process of abstraction
-The notion of abstraction we'll be using is very similar to the concept of lambda abstraction in the lambda calculus.  Creating abstractions from data will be similar to the process of anti-unification.  The major adaptation will be to accomodate the fact that variables can be lists of elements that can increase the length of the list that contains the variable.
+The notion of abstraction we'll be using is very similar to the concept of lambda abstraction in the lambda calculus.  Creating abstractions from data will be similar to the process of anti-unification.  The major adaptation will be related to the fact that variables can be replaced with multiple elements that get inserted into their place instead of a single element (see the definition of substitution above).  
+
+Let's first define a data structure for an abstraction.  It is basically the same thing as an inference problem: a set a variables and some data (list, possibly nested) that contain those variables.
+
+#+name: abstraction
+#+begin_src python :noweb yes
+  Abstraction = InferenceProblem
+#+end_src
+
+The basic intuition is abstractions can be made from data by saving what is common between the data and replacing what is different with variables.  The abstraction can then be used to help solve inference problems in a similar way to how the complete prior data in our first approach helped.  If the non-variable parts of the inference problem match to the abstraction and the abstraction has non-variable parts that match up to the variable parts of the partial data then we can bind these (just as in the case where we match complete data to partial data).  The difference (and where the flexibility comes in) is that unlike when matching to complete data not every part of the non-variable partial data has to have an exact counterpart in the abstraction since abstractions also have variables.
+
+So for example suppose our inference problem has the following partial data (with variables can be determined by assumption about their form we used earlier)
+
+[[1, 1, 1, 1], 'v0']
+
+and now suppose in our memory we have the following abstraction
+
+[[1, 'v0"'], 0]
+
+We can match the first part of the first elements then bind to v0" the remaining [1,1,1] of the inference problem's first element.  Now since we first element did not have any conflict in matching we can bind the second element of the inference problem v0 to the abstraction's second element 0.  The important thing is more than one inference problem of the same form can be solved with this abstraction e.g. [[1,1], 'v0'], [[1,1,1,1,1,1,1], 'v0'], etc.  unlike in our first approach where a complete data such as [[1,1,1], 0] could only solve one of these inference problems, specifically [[1,1,1], 'v0'].
+
+Another useful thing about having abstractions in the prior data is that one can perform inference within the prior data which can then be used to help inference in the problem data.  A simple example is as follows.  Suppose the inference problem is
+
+[1,0, 'v0']
+
+and the abstraction in our prior data is
+
+['v0"', 0, 'v0"']
+
+Observe we don't have any concrete element that matches the variable in the partial data in the abstraction, but we can "infer" the first v0" is 1 based on data in the inference problem, then we can use this to say the second v0" is 1 which we can then use create a binding for v0 to 1 and give use a possible solution to the inference problem.
+
+The main things we'll need to work out the details for are how do useful abstractions get created from data and what is the matching process like between an abstraction and inference problem.
