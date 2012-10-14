@@ -659,3 +659,44 @@ and the abstraction in our prior data is
 Observe we don't have any concrete element that matches the variable in the partial data in the abstraction, but we can "infer" the first v0" is 1 based on data in the inference problem, then we can use this to say the second v0" is 1 which we can then use create a binding for v0 to 1 and give use a possible solution to the inference problem.
 
 The main things we'll need to work out the details for are how do useful abstractions get created from data and what is the matching process like between an abstraction and inference problem.
+
+***** Creating abstractions
+In this section we explore the process of creating abstractions from data.  There are three cases we will look at
+1) abstracting from concrete data and concrete data
+2) abstracting from concrete data and abstraction
+3) abstracting from abstraction and abstraction
+
+The basic idea is to do something like anti-unification where we try to create new data similar to the original data, but with the differences replaced by variables.
+****** Abstracting from concrete data and concrete data
+Suppose we have the data from pattern0
+#+begin_src python :noweb yes
+  pattern0 = [[[1], 0], [[1,1], 0], [[1,1,1,1,1], 0], [[1,1], 0]]
+#+end_src
+
+If we start with the first piece of data, [[1], 0], in our memory and add the second, [[1,1], 0], what kind of abstractions are reasonable?
+
+One possibility is to note the first element is different and get ['v0', 0]. Another possibility is to compare [1] and [1,1] and create the abstraction [1, 'v0'] and eventually get [[1, 'v0'], 0].  
+
+==Notes on allowing the empty list to be bound to a variable
+In the first approximation, the match function assumed variables could not be bound to empty lists, while the second abstraction [[1,'v0'], 0] does assume this.  This will probably make matching more difficult since it increases the number of possible matches.
+
+If a variable can be bound to the empty list then a variable can be placed pretty much anywhere in the data and create a valid abstraction e.g. [['v0', '1, 'v1'], 'v2', 0, 'v3'] can have the binding {'v0': [], 'v1': [1], 'v2': [], 'v3': []} and the substitution would be the second example of pattern0 data [[1,1], 0].
+==
+
+Comparing other examples of the pattern0 data would yield similar results e.g. anything compared with [[1], 0] would get the same abstractions and comparing [[1,1], 0] with [[1,1,1,1,1], 0] gives us ['v0', 0] and [[1,1,'v1'], 0] as intuitive abstractions.
+
+Let's do this excercise with pattern1
+#+begin_src python :noweb yes
+ pattern1 = [[[1,1,0,0],1], [[1,1,1,0,0,0],1], [[1,1,1,1,0,0,0,0],1]]
+#+end_src
+
+Comparing [[1,1,0,0],1] with [[1,1,1,0,0,0],1], some reasonable abstractions include
+['v0', 1]
+
+[[1,1,'v0'],1]
+
+[[1,1,'v0',0,0,'v1'], 1]
+
+The main difficulty of creating abstractions will be determining the appropriate places to insert variables due to the large number of possibilities.
+
+
