@@ -699,4 +699,32 @@ Comparing [[1,1,0,0],1] with [[1,1,1,0,0,0],1], some reasonable abstractions inc
 
 The main difficulty of creating abstractions will be determining the appropriate places to insert variables due to the large number of possibilities.
 
+******* Algorithm Description
+The examples from above combined with previous implementations of anti-unification suggest a recursive algorithm for creating abstractions.  If the data are not lists, return the data if they are equal otherwise a variable.  If the data are lists then iterate through the elements and try to create abstractions between them.  This is the tricky part since we need to figure out how to insert variables appropriately into the resulting list.
 
+==Notes on return type
+It might make sense to simplify things by not using the class definition for inference problem and abstraction.  If we assume variables have a certain form (which we have been doing already) then inference problems and abstractions are just lists with these special symbols.
+
+For now we'll keep the classes, but we'll have abstract just return the partial_data part (since it's easier to do that with a recursive implementation) then we'll have a function that wraps the partial data in an Abstraction class.
+
+Eventually we will want named abstractions and be able to have lists where the elements are the names of other abstractions along with parameters for those abstractions so having the classes then will be useful, but we can wait for the third approximation or beyond.
+==
+
+#+name: abstract
+#+begin_src python :noweb yes :tangle yes
+  def abstract(data1, data2):
+      if not isinstance(data1, list) or not isinstance(data2, list):
+          if data1 == data2:
+              return data1
+          else:
+              return generate_variable()
+      else:
+          #both data are lists so iterate through abstracting the elements together
+          <<abstract_list_case>>
+#+end_src
+
+For abstracting two lists we need to know when to insert variables and how much of each list the variable should match up to.  In the case of pattern1 abstracting from [[1,1,0,0],1] and [[1,1,1,0,0,0],1]
+ #+name: abstract_list_case
+#+begin_src python :noweb yes
+
+#+end_src
