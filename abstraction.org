@@ -723,7 +723,13 @@ Eventually we will want named abstractions and be able to have lists where the e
           <<abstract_list_case>>
 #+end_src
 
-For abstracting two lists we need to know when to insert variables and how much of each list the variable should match up to.  In the case of pattern1 abstracting from [[1,1,0,0],1] and [[1,1,1,0,0,0],1]
+For abstracting two lists we need to know when to insert variables and how much of each list the variable should match up to.  In the case of pattern1 abstracting from [[1,1,0,0],1] and [[1,1,1,0,0,0],1] we first check if both lists are the same length, if they are we can pair the elements and abstract them e.g. [1,1,0,0] with [1,1,1,0,0,0] and 1 with 1.
+
+In the case of [1,1,0,0] with [1,1,1,0,0,0] they are not the same length so we have some flexibility as to where variables can go.  The goal is to come up with an abstraction such that both lists are instances of the abstraction.  One possibility is to take the smaller list and try to insert variables such that there is a binding that makes it equal to the larger list.  An element in the smaller list that isn't in the larger can be replaced with a variable.  In general we want to find as many elements that match in the right order then try to insert variables into the resulting list such that there are substitions that create the original lists.  For now we'll develop something ad-hoc and come back to this with a more optimal soluction if it is important [ALGORITHMIC PROBLEM].  One reason it might not be that important to find the optimal abstraction for any pair of data is that good abstractions should be promoted in the outer loop so given many pairs of data the best ones will be found eventually.  It might be worth creating random abstractions to reduce any bias...
+
+One algorithm is to take the smaller list and for each element find the first element in the larger list that matches.  Replace any gap with a variable or if there is no match for the current element then replace it with a variable.
+
+For example with SL := [1,1,0,0] and BL := [1,1,1,0,0,0] we iterate through the elements of SL starting with SL[0] that matches to BL[0]
  #+name: abstract_list_case
 #+begin_src python :noweb yes
 
