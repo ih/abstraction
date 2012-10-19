@@ -717,7 +717,7 @@ Eventually we will want named abstractions and be able to have lists where the e
           if data1 == data2:
               return data1
           else:
-              return generate_variable()
+              return variable_generator.generate()
       else:
           #both data are lists so iterate through abstracting the elements together
           <<abstract_list_case>>
@@ -734,15 +734,55 @@ For example with SL := [1,1,0,0] and BL := [1,1,1,0,0,0] we iterate through the 
 Let's look at another case where there are non-matching elements in the smaller list e.g. SL=[1,2,2,1] and BL=[1,1,1,1,1] we start by matching SL[0] with BL[0] then find SL[1] does not match BL[1] so we start binding elements of BL to a new variable v0 looking for an element to match to SL[1], but we do not so instead of having a variable between SL[0] and SL[1] we guess SL[1] should be a variable and we'll bind it to BL[1] as kind of an arbitrary design decision [DD].  A similar thing happens with SL[2] which is turned into a variable that binds to BL[2].  SL[3] binds to BL[3] and a variable is created to bind to the remaining BL[4] resulting in [1,v0, v1, 1,v2], but we know we can remove any variables that are next to each other so we get [1,v0,1,v2].  It seems better to we had been able to reach the abstraction [1,v0,1] since there are less variables.
 
 
- #+name: abstract_list_case
-#+begin_src python :noweb yes
+#+name: abstract_list_case
+#+begin_src python :noweb yes 
   element_abstractions = []
   small_list,big_list = sorted([data1,data2], cmp=lambda x,y: len(x)-len(y))
   position_in_big = 0
-  for position_in_small, element_from_small in enumerate(small_list):
-      element_abstraction = abstract(element_from_small, big_list[position_in_big])
-      if is_primitive
+  for position_in_small, element_in_small in enumerate(small_list):
+      element_abstraction = abstract(element_in_small, big_list[position_in_big])
+      element_abstractions.append(element_abstraction)
+      if is_variable(element_abstraction):
+          #fast forward position_in_big until the next element will match element_in_small
+          #i.e. try and squeeze non-matching segments in the big list in between matching
+          #parts of the small list
+          position_in_big = fast_forward(position_in_big, big_list, element_in_small)
+          if position_in_big is None:
+              position_in_big += 1
+      else:
+          position_in_big += 1
+  #if there are more elements left in the big list bind them to a variable
+  if position_in_big < len(big_list) - 1:
+      element_abstractions.append(variable_generator.generate())
+  
+  
+  def fast_forward(position_in_big, big_list, element_in_small):
+      for new_position, element_in_big in enumerate(big_list[position_in_big:]):
+          if element_in_big == element_in_small:
+              return new_position
+      return None
 #+end_src
+
+#+name: generate_variable 
+#+begin_src python :noweb yes :tangle yes
+  class VariableGenerator:
+      def __init__(self):
+         self._counter = 0
+  
+      def generate(self):
+        new_variable = 'v'+str(self._counter)
+        self._counter += 1
+        return new_variable
+  
+  variable_generator = VariableGenerator()
+#+end_src
+
+We can test the algorithm on our worked through example to make sure it's what we expect.
+
+#+begin_src python :noweb yes :tangle yes
+  print abstract(pattern1[0], pattern1[1])
+#+end_src
+
 
 It's worth noting this algorithm has a certain amount of "bias." An example of when this algorithm performs poorly is [1,0,0,0,0] and [0,0,0,0,0,0,0,1], which would result in ['v0', 1, 'v1'] where v0 binds to [] and [0,0,0,0,0,0,0] (in the first and second lists respectively) and v1 binds to [0,0,0,0] and [].  One possible "fix" is to run the above algorithm repeatedly, but each time starting at the next element over e.g. first starting at list[0] then list[1] then list[2] etc using a variable to in front of the starting point to capture and non-matches.  Then take the best match based on the repeated runs.  Are there still poor performing cases (?) Probably... better to let the data bias the abstractions than the algorithms (add more randomness to list abstraction case, let good abstractions become prominent in the outer loop which matches prior data to indference problem partial data).
 
