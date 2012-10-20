@@ -539,7 +539,7 @@ In order to solve an inference problem, we'll first extract the partial_data the
 
 We can test the function on the original inference problem examples and binary data.
 
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
     <<binary_data>>
     <<binary_data_classification_problems>>
     <<binary_data_completion_problems>>
@@ -699,7 +699,7 @@ Comparing [[1,1,0,0],1] with [[1,1,1,0,0,0],1], some reasonable abstractions inc
 
 The main difficulty of creating abstractions will be determining the appropriate places to insert variables due to the large number of possibilities.
 
-******* Algorithm Description
+******* TODO Algorithm Description
 The examples from above combined with previous implementations of anti-unification suggest a recursive algorithm for creating abstractions.  If the data are not lists, return the data if they are equal otherwise a variable.  If the data are lists then iterate through the elements and try to create abstractions between them.  This is the tricky part since we need to figure out how to insert variables appropriately into the resulting list.
 
 ==Notes on return type
@@ -736,6 +736,12 @@ Let's look at another case where there are non-matching elements in the smaller 
 
 #+name: abstract_list_case
 #+begin_src python :noweb yes 
+  def fast_forward(position_in_big, big_list, element_in_small):
+        for new_position, element_in_big in enumerate(big_list[position_in_big:], start=position_in_big):
+            if element_in_big == element_in_small:
+                return new_position+1
+        return None
+  
   element_abstractions = []
   small_list,big_list = sorted([data1,data2], cmp=lambda x,y: len(x)-len(y))
   position_in_big = 0
@@ -749,18 +755,17 @@ Let's look at another case where there are non-matching elements in the smaller 
           position_in_big = fast_forward(position_in_big, big_list, element_in_small)
           if position_in_big is None:
               position_in_big += 1
+          else:
+              element_abstractions.append(element_in_small)    
       else:
           position_in_big += 1
-  #if there are more elements left in the big list bind them to a variable
-  if position_in_big < len(big_list) - 1:
+  #if there are more elements left in the big list bind them to a variable, observe
+  #position_in_big was incremented one last time so we check it against len(big_list) instead
+  #of len(big_list)-1 the position of the last element in big_list
+  if position_in_big < len(big_list):
       element_abstractions.append(variable_generator.generate())
+  return element_abstractions
   
-  
-  def fast_forward(position_in_big, big_list, element_in_small):
-      for new_position, element_in_big in enumerate(big_list[position_in_big:]):
-          if element_in_big == element_in_small:
-              return new_position
-      return None
 #+end_src
 
 #+name: generate_variable 
@@ -780,7 +785,14 @@ Let's look at another case where there are non-matching elements in the smaller 
 We can test the algorithm on our worked through example to make sure it's what we expect.
 
 #+begin_src python :noweb yes :tangle yes
-  print abstract(pattern1[0], pattern1[1])
+  <<binary_data>>
+  abstraction = abstract(pattern1[0], pattern1[1])
+  print abstraction
+  assert(abstraction == [[1, 1, 'v0', 0, 0, 'v1'], 1])
+  print match(abstraction, pattern1[0])
+  print match(abstraction, pattern1[1])
+  abstraction2 = abstract(pattern0[0], pattern0[1])
+  print abstraction2
 #+end_src
 
 
