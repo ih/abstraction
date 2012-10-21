@@ -243,7 +243,7 @@ Where the sub_match occurs from partial_data being matched to the third element 
 In all cases it seems natural that the return of a matching should be a function of matching the individual elements of the partial data.  The possible types to be matched are primitives, variables, and lists.  
 
 #+name: structure_for_match
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   def match(partial_data, prior_data):
       if is_variable(partial_data):
           <<match_variable_case>>
@@ -699,7 +699,7 @@ Comparing [[1,1,0,0],1] with [[1,1,1,0,0,0],1], some reasonable abstractions inc
 
 The main difficulty of creating abstractions will be determining the appropriate places to insert variables due to the large number of possibilities.
 
-******* TODO Algorithm Description
+******* Algorithm Description
 The examples from above combined with previous implementations of anti-unification suggest a recursive algorithm for creating abstractions.  If the data are not lists, return the data if they are equal otherwise a variable.  If the data are lists then iterate through the elements and try to create abstractions between them.  This is the tricky part since we need to figure out how to insert variables appropriately into the resulting list.
 
 ==Notes on return type
@@ -782,6 +782,11 @@ Let's look at another case where there are non-matching elements in the smaller 
   variable_generator = VariableGenerator()
 #+end_src
 
+It's worth noting this algorithm has a certain amount of "bias." An example of when this algorithm performs poorly is [1,0,0,0,0] and [0,0,0,0,0,0,0,1], which would result in ['v0', 1, 'v1'] where v0 binds to [] and [0,0,0,0,0,0,0] (in the first and second lists respectively) and v1 binds to [0,0,0,0] and [].  One possible "fix" is to run the above algorithm repeatedly, but each time starting at the next element over e.g. first starting at list[0] then list[1] then list[2] etc using a variable to in front of the starting point to capture and non-matches.  Then take the best match based on the repeated runs.  Are there still poor performing cases (?) Probably... better to let the data bias the abstractions than the algorithms (add more randomness to list abstraction case, let good abstractions become prominent in the outer loop which matches prior data to indference problem partial data).
+
+What are we trying to optimize?  The above examples seem to indicate we'd like to maximize the number of non-variables while minimizing the number of variables in the resulting abstraction (is this true?  in the case of [1,1,0,0] and [1,1,1,0,0,0] we could get fewer variables with [1,1,v0,0,0] but intuitively having two distinct variables with different "types" seems to fit better)
+
+
 We can test the algorithm on our worked through example to make sure it's what we expect.
 
 #+begin_src python :noweb yes :tangle yes
@@ -795,7 +800,37 @@ We can test the algorithm on our worked through example to make sure it's what w
   print abstraction2
 #+end_src
 
+******** Changing match
+The reason match fails to come up with an appropriate binding is we assumed earlier that the binding for a variable could not be an empty list.  Now that we have formalized the process of abstraction more we find being able to bind a variable to an empty list is useful, so let's adjust the necessary parts of the match function.
 
-It's worth noting this algorithm has a certain amount of "bias." An example of when this algorithm performs poorly is [1,0,0,0,0] and [0,0,0,0,0,0,0,1], which would result in ['v0', 1, 'v1'] where v0 binds to [] and [0,0,0,0,0,0,0] (in the first and second lists respectively) and v1 binds to [0,0,0,0] and [].  One possible "fix" is to run the above algorithm repeatedly, but each time starting at the next element over e.g. first starting at list[0] then list[1] then list[2] etc using a variable to in front of the starting point to capture and non-matches.  Then take the best match based on the repeated runs.  Are there still poor performing cases (?) Probably... better to let the data bias the abstractions than the algorithms (add more randomness to list abstraction case, let good abstractions become prominent in the outer loop which matches prior data to indference problem partial data).
+It will help to look at an example of how match would work when a variable can be bound to the empty list.  We'll use 
 
-What are we trying to optimize?  The above examples seem to indicate we'd like to maximize the number of non-variables while minimizing the number of variables in the resulting abstraction (is this true?  in the case of [1,1,0,0] and [1,1,1,0,0,0] we could get fewer variables with [1,1,v0,0,0] but intuitively having two distinct variables with different "types" seems to fit better)
+#+name: 
+#+begin_src python :noweb yes
+  partial_data = [[1, 1, 'v0', 0, 0, 'v1'], 1]
+  prior_data = [[1,1,0,0],1]
+#+end_src
+
+Stepping through the code the first thing we realize is the constraint that the length of the prior_data needs to be greater than the length of the partial_data is no longer true.  Let's remove that from the code
+
+#+name: structure_for_match2
+#+begin_src python :noweb yes :tangle yes
+  def match(partial_data, prior_data):
+      if is_variable(partial_data):
+          <<match_variable_case>>
+      elif is_symbol(partial_data):
+          if partial_data == prior_data:
+              <<match_symbol_equal_case>>
+          else:
+              <<match_symbol_not_equal_case>>
+      else:
+          assert(isinstance(partial_data, list))
+          if isinstance(prior_data, list):
+              #combine the results of matching the individual elements
+              <<match_list_case>>
+          else:
+              <<match_list_no_match>>
+#+end_src
+
+
+
