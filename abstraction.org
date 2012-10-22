@@ -242,7 +242,7 @@ Where the sub_match occurs from partial_data being matched to the third element 
 
 In all cases it seems natural that the return of a matching should be a function of matching the individual elements of the partial data.  The possible types to be matched are primitives, variables, and lists.  
 
-#+name: structure_for_match
+#+name: structure_for_match_deprecated
 #+begin_src python :noweb yes :tangle no
   def match(partial_data, prior_data):
       if is_variable(partial_data):
@@ -325,7 +325,7 @@ In the case where there is a next element after the current variable element the
 
 In the example variable_case_matching_list_example if element is 'v0' then next_element is 0 so we want to find all the positions in prior_data ([1,0,1,0,1,0,0,1]) of 0s e.g. 1, 3, 4, 5, such that there are enough remaining elements in prior_data to match the remaining partial_data. The amount of remaining partial_data is 1 (just the 'v1' element).  If we only look at positions in the prior_data before prior_data[-1:] then any match will have at least 1 element left in prior_data to match the remaining element in the partial_data.
 
-#+name: match_list_case_variable_case_has_next_element
+#+name: match_list_case_variable_case_has_next_element_deprecated
 #+begin_src python :noweb yes 
   #iterate through the prefixes of prior_data and capture the possible results of matching the variable to it
   variable = partial_data_element
@@ -811,9 +811,9 @@ It will help to look at an example of how match would work when a variable can b
   prior_data = [[1,1,0,0],1]
 #+end_src
 
-Stepping through the code the first thing we realize is the constraint that the length of the prior_data needs to be greater than the length of the partial_data is no longer true.  Let's remove that from the code
+Stepping through the code the first thing we realize is the constraint that the length of the prior_data needs to be greater than the length of the partial_data is no longer true.  Let's remove that condition
 
-#+name: structure_for_match2
+#+name: structure_for_match
 #+begin_src python :noweb yes :tangle yes
   def match(partial_data, prior_data):
       if is_variable(partial_data):
@@ -834,3 +834,28 @@ Stepping through the code the first thing we realize is the constraint that the 
 
 
 
+The next place that changes is match_list_case_variable_case_has_next_element.  Previously we used a constraint when matching the element after the variable in the partial_data that the amount of prior_data after the match had to be greater than the amount of partial_data after the match, but this is no longer the case since the prior_data does not have to be longer than the partiaL_data.
+
+#+name: match_list_case_variable_case_has_next_element
+#+begin_src python :noweb yes 
+  #iterate through the prefixes of prior_data and capture the possible results of matching the variable to it
+  variable = partial_data_element
+  #remember the possible variable bindings along with the corresponding prior_data_position
+  possible_variable_bindings = []
+  
+  #positions in the prior_data where the prior_data element matches the partial_data element that
+  #comes after the variable that is being bound, look at all the positions in prior_data after the current and up to before the tail of prior where the tail is as long as the remaining partial_data
+  matching_positions = [i for i in range(prior_data_position,len(prior_data[prior_data_position:]))
+                        if prior_data[i] == next_element]
+  
+  if len(matching_positions) > 0:
+      chosen_match_position = random.choice(matching_positions)
+      #bind the prefix of prior_data that ends just before chosen_match_position
+      variable_binding = {variable: prior_data[prior_data_position: chosen_match_position]}
+      #skip ahead prior_data_position to the point of the match since that will be the next element in the iteration over partial_data
+      prior_data_position = chosen_match_position
+  
+      matches.append(variable_binding)
+  else:
+      matches.append(None)
+#+end_src
