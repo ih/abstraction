@@ -789,7 +789,9 @@ What are we trying to optimize?  The above examples seem to indicate we'd like t
 
 We can test the algorithm on our worked through example to make sure it's what we expect.
 
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle test.py
+  from abstraction import *
+  
   <<binary_data>>
   abstraction = abstract(pattern1[0], pattern1[1])
   print abstraction
@@ -834,7 +836,11 @@ Stepping through the code the first thing we realize is the constraint that the 
 
 
 
-The next place that changes is match_list_case_variable_case_has_next_element.  Previously we used a constraint when matching the element after the variable in the partial_data that the amount of prior_data after the match had to be greater than the amount of partial_data after the match, but this is no longer the case since the prior_data does not have to be longer than the partiaL_data.
+The next place that changes is match_list_case_variable_case_has_next_element.  Previously we used a constraint when matching the element after the variable in the partial_data that the amount of prior_data after the match had to be greater than the amount of partial_data after the match, but this is no longer the case since the prior_data does not have to be longer than the partiaL_data.  
+
+A condition that does need to hold is for the number of non-variables after the chosen match in the prior_data should be at least as many as the non-variables in the partial_data after the variable. One thing to consider thougth is whether checking for this condition guarantees if a binding exists then the match will find it.  If it doesn't then it might be worth keeping the code simpler for now and optimizing (for correctness in this case) after the whole system is built since not having a correct answer each time might not be that important (e.g. there may be handling of fault tolerance elsewhere).
+
+Let's try to find a case where match could fail to produce a valid binding.  The main point where failure could occur is  probably when the variable match is chosen at random.  
 
 #+name: match_list_case_variable_case_has_next_element
 #+begin_src python :noweb yes 
@@ -860,3 +866,5 @@ The next place that changes is match_list_case_variable_case_has_next_element.  
   else:
       matches.append(None)
 #+end_src
+
+One 
