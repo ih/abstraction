@@ -845,7 +845,8 @@ The next place that changes is match_list_case_variable_case_has_next_element.  
   
   #positions in the prior_data where the prior_data element matches the partial_data element that
   #comes after the variable that is being bound, look at all the positions in prior_data after the current and up to before the tail of prior where the tail is as long as the remaining partial_data
-  matching_positions = [i for i in range(prior_data_position,len(prior_data[prior_data_position:]))
+  matching_positions = [i for i in range(prior_data_position,
+                                         prior_data_position+len(prior_data[prior_data_position:]))
                         if prior_data[i] == next_element]
   
   if len(matching_positions) > 0:
