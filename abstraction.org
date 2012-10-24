@@ -840,7 +840,7 @@ The next place that changes is match_list_case_variable_case_has_next_element.  
 
 A condition that does need to hold is for the number of non-variables after the chosen match in the prior_data should be at least as many as the non-variables in the partial_data after the variable. One thing to consider thougth is whether checking for this condition guarantees if a binding exists then the match will find it.  If it doesn't then it might be worth keeping the code simpler for now and optimizing (for correctness in this case) after the whole system is built since not having a correct answer each time might not be that important (e.g. there may be handling of fault tolerance elsewhere).
 
-Let's try to find a case where match could fail to produce a valid binding.  The main point where failure could occur is  probably when the variable match is chosen at random.  
+Let's try to find a case where match could fail to produce a valid binding.  The main point where failure could occur is  probably when the variable match is chosen at random.  We need to find a case where one of the possible matches makes it so there is no match as we continue on.  We'll start by trying to use the simplest data possible to try and create this case.  Let the partial_data ['v0', 1, 0] and prior_data be [1,1,1,0].  'v0' can bind to the first two 1s.    What about ['v0', 1, 'v1', 0] then we can get {v0: [1,1]} {v1:[]}.  At this point perhaps if there is a valid binding then it is possible to choose randomly (as long as you leave enough non-variables) and always get a valid binding.  The reason roughly is if there is a valid binding then any remaining non-variables in the partial_data will have a match in the remaining prior_data (why?).
 
 #+name: match_list_case_variable_case_has_next_element
 #+begin_src python :noweb yes 
@@ -851,9 +851,11 @@ Let's try to find a case where match could fail to produce a valid binding.  The
   
   #positions in the prior_data where the prior_data element matches the partial_data element that
   #comes after the variable that is being bound, look at all the positions in prior_data after the current and up to before the tail of prior where the tail is as long as the remaining partial_data
-  matching_positions = [i for i in range(prior_data_position,
-                                         prior_data_position+len(prior_data[prior_data_position:]))
-                        if prior_data[i] == next_element]
+  matching_positions = find_matching_positions(next_element, prior_data, partial_data,
+                                               prior_data_position, partial_data_position)
+  ### matching_positions = [i for i in range(prior_data_position,
+  ###                                        prior_data_position+len(prior_data[prior_data_position:]))
+  ###                       if prior_data[i] == next_element]
   
   if len(matching_positions) > 0:
       chosen_match_position = random.choice(matching_positions)
@@ -866,5 +868,13 @@ Let's try to find a case where match could fail to produce a valid binding.  The
   else:
       matches.append(None)
 #+end_src
+In order to find the possible matching positions we need to check two things as we iterate through the prior_data.
 
-One 
+1) The next_element in the partial_data matches the current prior_data element.
+2) There are at least as many non-variables after the current prior_data element as there are non-variables in the remaining partial_data.
+
+Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in  partial_data then 
+#+name: find_matching_positions
+#+begin_src python :noweb yes tangle: yes
+
+#+end_src
