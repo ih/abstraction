@@ -873,8 +873,25 @@ In order to find the possible matching positions we need to check two things as 
 1) The next_element in the partial_data matches the current prior_data element.
 2) There are at least as many non-variables after the current prior_data element as there are non-variables in the remaining partial_data.
 
-Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in  partial_data then 
+Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in the remaining partial_data then find the tail of the prior_data that contains that number of non-variables and only iterate until the beginning of the tail.
 #+name: find_matching_positions
 #+begin_src python :noweb yes tangle: yes
-
+  def find_matching_positions(next_element, prior_data, partial_data,
+                              prior_data_position, partial_data_position):
+      def find_last_prior_position(number_non_variables):
+          non_variables_in_prior = 0
+          for i in range(len(prior_data)-1, prior_data_position, -1):
+              if not is_variable(prior_data[i]):
+                  non_variables_in_prior += 1
+                  if non_variables_in_prior == number_non_variables:
+                      return i
+          return prior_data_position
+  
+      non_variables_in_partial = [element
+                                  for element in partial_data[partial_data_position+1:]
+                                  if not is_variable(element)]
+      #find last position in prior_data where remaining elements have same number of
+      #non-variables as non_variables_in_partial
+      last_prior_position = find_last_prior_position(len(non_variables_in_partial))
+  
 #+end_src
