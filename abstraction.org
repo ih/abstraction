@@ -853,9 +853,6 @@ Let's try to find a case where match could fail to produce a valid binding.  The
   #comes after the variable that is being bound, look at all the positions in prior_data after the current and up to before the tail of prior where the tail is as long as the remaining partial_data
   matching_positions = find_matching_positions(next_element, prior_data, partial_data,
                                                prior_data_position, partial_data_position)
-  ### matching_positions = [i for i in range(prior_data_position,
-  ###                                        prior_data_position+len(prior_data[prior_data_position:]))
-  ###                       if prior_data[i] == next_element]
   
   if len(matching_positions) > 0:
       chosen_match_position = random.choice(matching_positions)
@@ -875,7 +872,7 @@ In order to find the possible matching positions we need to check two things as 
 
 Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in the remaining partial_data then find the tail of the prior_data that contains that number of non-variables and only iterate until the beginning of the tail.
 #+name: find_matching_positions
-#+begin_src python :noweb yes tangle: yes
+#+begin_src python :noweb yes :tangle yes
   def find_matching_positions(next_element, prior_data, partial_data,
                               prior_data_position, partial_data_position):
       def find_last_prior_position(number_non_variables):
@@ -891,7 +888,14 @@ Just like the last version of match we can determine how much of prior_data we n
                                   for element in partial_data[partial_data_position+1:]
                                   if not is_variable(element)]
       #find last position in prior_data where remaining elements have same number of
-      #non-variables as non_variables_in_partial
-      last_prior_position = find_last_prior_position(len(non_variables_in_partial))
-  
+      #non-variables as non_variables_in_partial-1, the -1 is because we don't count
+      #the first non_variable which is the next_element
+      assert(non_variables_in_partial[0] == next_element)
+      last_prior_position = find_last_prior_position(len(non_variables_in_partial)-1)
+      matching_positions = [i for i,element
+                            in enumerate(prior_data[prior_data_position:last_prior_position],
+                                         start=prior_data_position)
+                            if element == next_element]
+      return matching_positions
 #+end_src
+
