@@ -899,3 +899,12 @@ Just like the last version of match we can determine how much of prior_data we n
       return matching_positions
 #+end_src
 
+Let's test the update match on the old cases.
+
+#+begin_src python :noweb yes :tangle test.py
+  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
+  
+  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
+  for i in range(10):
+      print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
+#+end_src
