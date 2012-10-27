@@ -876,13 +876,12 @@ Just like the last version of match we can determine how much of prior_data we n
   def find_matching_positions(next_element, prior_data, partial_data,
                               prior_data_position, partial_data_position):
       def find_last_prior_position(number_non_variables):
-          non_variables_in_prior = 0
-          for i in range(len(prior_data)-1, prior_data_position, -1):
-              if not is_variable(prior_data[i]):
-                  non_variables_in_prior += 1
-                  if non_variables_in_prior == number_non_variables:
-                      return i
-          return prior_data_position
+          count_down_position = len(prior_data)-1
+          while number_non_variables > 0 and count_down_position > prior_data_position:
+              if not is_variable(prior_data[count_down_position]):
+                  number_non_variables -= 1
+              count_down_position -= 1
+          return count_down_position
   
       non_variables_in_partial = [element
                                   for element in partial_data[partial_data_position+1:]
@@ -893,10 +892,11 @@ Just like the last version of match we can determine how much of prior_data we n
       assert(non_variables_in_partial[0] == next_element)
       last_prior_position = find_last_prior_position(len(non_variables_in_partial)-1)
       matching_positions = [i for i,element
-                            in enumerate(prior_data[prior_data_position:last_prior_position],
+                            in enumerate(prior_data[prior_data_position:last_prior_position+1],
                                          start=prior_data_position)
                             if element == next_element]
       return matching_positions
+  
 #+end_src
 
 Let's test the update match on the old cases.
@@ -907,4 +907,35 @@ Let's test the update match on the old cases.
   print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
   for i in range(10):
       print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
+
+  for i in range(10):
+      #a case where this algorithm can fail to find the existing valid binding  
+      print match(['v0', 0], [1,0,1,0,1,0,0]) 
+      
 #+end_src
+
+#+RESULTS
+: {'v0': [0]}
+: None
+: {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]}
+: {'v0': [1], 'v1': [1, 0, 1, 0, 0, 1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1], 'v1': [1, 0, 1, 0, 0, 1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]}
+: {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}
+: None
+: None
+: None
+: {'v0': [1, 0, 1, 0, 1, 0]}
+: None
+: None
+: None
+: None
+: None
+: None
+
+For the most part the fixed match meets our expectation, but we also found a case where this algorithm can fail to find a valid binding if it exists.  Rather than special case a fix, we'll wait to resolve this issue when we begin to look at match between abstractions.
