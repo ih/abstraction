@@ -625,7 +625,6 @@ And pose problems that test this different type of abstraction.
 #+end_src
 
 
-
 **** The process of abstraction
 The notion of abstraction we'll be using is very similar to the concept of lambda abstraction in the lambda calculus.  Creating abstractions from data will be similar to the process of anti-unification.  The major adaptation will be related to the fact that variables can be replaced with multiple elements that get inserted into their place instead of a single element (see the definition of substitution above).  
 
@@ -939,3 +938,18 @@ Let's test the update match on the old cases.
 : None
 
 For the most part the fixed match meets our expectation, but we also found a case where this algorithm can fail to find a valid binding if it exists.  Rather than special case a fix, we'll wait to resolve this issue when we begin to look at match between abstractions.
+
+****** Abstracting from concrete data and abstract data
+***** Using abstractions
+We have a way of creating abstractions from data, but how is this used in the process of solving inference problems?  We'll extend how data is added to memory as well as how inference problems are solved by an agent by incorporating abstraction.
+
+We'll start with how inference problems can be solved with abstraction to gain insight on how abstractions should be stored.
+
+****** Solving inference problems with abstraction
+Earlier we looked at one example of how abstraction can help solve an inference problem (the section following the code block named abstraction).  Let's look at some of the other additional inference problems we listed and see how abstraction might be used to solve them.  
+
+******* classify_problem2
+******* classify_problem3
+******* completion_problem2
+****** Storing abstractions
+Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?
