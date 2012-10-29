@@ -751,11 +751,12 @@ Let's look at another case where there are non-matching elements in the smaller 
           #fast forward position_in_big until the next element will match element_in_small
           #i.e. try and squeeze non-matching segments in the big list in between matching
           #parts of the small list
-          position_in_big = fast_forward(position_in_big, big_list, element_in_small)
-          if position_in_big is None:
+          new_position_in_big = fast_forward(position_in_big, big_list, element_in_small)
+          if new_position_in_big is None:
               position_in_big += 1
           else:
-              element_abstractions.append(element_in_small)    
+              position_in_big = new_position_in_big
+              element_abstractions.append(element_in_small)
       else:
           position_in_big += 1
   #if there are more elements left in the big list bind them to a variable, observe
@@ -949,7 +950,34 @@ We'll start with how inference problems can be solved with abstraction to gain i
 Earlier we looked at one example of how abstraction can help solve an inference problem (the section following the code block named abstraction).  Let's look at some of the other additional inference problems we listed and see how abstraction might be used to solve them.  
 
 ******* classify_problem2
+In this problem the prior_data is 
+
+#+begin_src python :noweb yes :results output
+<<binary_data>>
+print 'pattern0:%s' % pattern0
+print 'pattern1:%s' % pattern1
+#+end_src
+
+#+RESULTS:
+: pattern0:[[[1], 0], [[1, 1], 0], [[1, 1, 1, 1, 1], 0], [[1, 1], 0]]
+: pattern1:[[[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 1, 1, 1, 0, 0, 0, 0], 1]]
+
+
+Suppose we added data alternating between pattern0 and pattern1 and when we add data we try to generate abstractions.
+
+The first abstraction we'd get is 
+#+begin_src python :noweb yes
+  from abstraction import abstract
+  <<binary_data>>
+  
+  abstract(pattern0[0], pattern1[0])
+#+end_src
+
+#+RESULTS:
+: None
+
+
 ******* classify_problem3
 ******* completion_problem2
 ****** Storing abstractions
-Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?
+Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?
