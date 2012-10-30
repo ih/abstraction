@@ -789,7 +789,7 @@ What are we trying to optimize?  The above examples seem to indicate we'd like t
 
 We can test the algorithm on our worked through example to make sure it's what we expect.
 
-#+begin_src python :noweb yes :tangle test.py
+#+begin_src python :noweb yes :tangle no
   from abstraction import *
   
   <<binary_data>>
@@ -901,7 +901,7 @@ Just like the last version of match we can determine how much of prior_data we n
 
 Let's test the update match on the old cases.
 
-#+begin_src python :noweb yes :tangle test.py
+#+begin_src python :noweb yes :tangle no
   print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
   
   print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
@@ -966,18 +966,61 @@ print 'pattern1:%s' % pattern1
 Suppose we added data alternating between pattern0 and pattern1 and when we add data we try to generate abstractions.
 
 The first abstraction we'd get is 
-#+begin_src python :noweb yes
+#+begin_src python :noweb yes :results output
   from abstraction import abstract
   <<binary_data>>
   
-  abstract(pattern0[0], pattern1[0])
+  print abstract(pattern0[0], pattern1[0])
 #+end_src
 
 #+RESULTS:
-: None
+: [[1, 'v0'], 'v1']
 
+If we name the abstraction e.g. f, we could use it to compress the data we've already seen getting
+
+['f' [] [0]]
+['f' [1, 0, 0] [1]]
+
+instead of 
+
+[[1], 0]
+[[1, 1, 0, 0], 1]
+
+Now suppose the next data we get is [[1, 1], 0].  What are possible things we could do when adding this to memory.  We could first see if it's an instantiation of an abstraction we already know.  This can be done by applying match with all the known abstractions.
+
+
+#+begin_src python :noweb yes :results output
+  from abstraction import *
+  
+  #the abstraction f
+  f = [[1, 'v0'], 'v1']
+  
+  print match(f, [[1,1],0])
+#+end_src
+
+#+RESULTS:
+: {'v0': [1], 'v1': [0]}
+
+which means we could rewrite the new data as
+[f [1] [0]]
+
+Now we can try and create new abstractions
+#+begin_src python :noweb yes :results output
+  from abstraction import *
+  
+  print abstract(['f', [1], [0]], ['f', [], [0]])
+  print abstract(['f', [1], [0]], ['f', [1, 0, 0], [1]])
+#+end_src
+
+#+RESULTS:
+: ['f', ['v0'], [0]]
+: ['f', [1, 'v1'], ['v2']]
+
+Intuitively the first abstraction ['f', ['v0'], [0]] seems like it captures some of the structure of pattern0.  One interpretation is it is a list of two things and the first element is of the first is 1 and the second element is 0.  The second says all the data consists of two elements where the first element starts with two ones.
+
+The main question is how does this help with inference?  One reason is having more partial data in memory means given an inference problem there is more chance of getting a partial match will let us infer the unknown based on prior data.
 
 ******* classify_problem3
 ******* completion_problem2
 ****** Storing abstractions
-Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?
+Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?  Storage space.
