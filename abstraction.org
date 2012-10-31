@@ -970,6 +970,9 @@ We'll start with how inference problems can be solved with abstraction to gain i
 Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?  Storage space.
 
 Let's walk through what the storage process might look like for the data we've been using in our examples
+
+******* Adding datat from pattern1 and pattern2
+******** Pattern0[0] and Pattern1[0] 
 #+begin_src python :noweb yes :results output
 <<binary_data>>
 print 'pattern0:%s' % pattern0
@@ -1004,6 +1007,7 @@ instead of
 [[1], 0]
 [[1, 1, 0, 0], 1]
 
+******** Pattern0[1]
 Now suppose the next data we get is [[1, 1], 0].  What are possible things we could do when adding this to memory.  We could first see if it's an instantiation of an abstraction we already know.  This can be done by applying match with all the known abstractions.
 
 #+begin_src python :noweb yes :results output
@@ -1037,8 +1041,36 @@ Intuitively the first abstraction ['f', ['v0'], [0]] seems like it captures some
 
 Perhaps it would also make sense to try and combine the two abstractions into a single abstraction e.g. ['f', ['v0'], [0]] and [[1, 'v0'], 'v1'] could become [[1, 'v0'], [0]].  We'll hold off on exploring the tradeoffs of doing such a thing until later though [DD].
 
-One question we should address when adding new data to the memory is how one can match prior data to only a part of the new data e.g. writing the new data in terms of multiple abstractions.
+******** Pattern1[1]
+Now let's add [[1, 1, 1, 0, 0, 0], 1] to memory.
 
+We'll try to first rewrite it in terms of any known abstractions.  
+
+#+begin_src python :noweb yes :results output
+  from abstraction import *
+  <<binary_data>>
+
+  f = [[1, 'v0'], 'v1']
+  g = ['f', ['v0'], [0]]
+  h = ['f', [1, 'v1'], ['v2']]
+  
+  print match(f, pattern1[1])
+  print match(g, pattern1[1])
+  print match(h, pattern1[1])
+#+end_src
+
+#+RESULTS:
+
+
+
+******* Recognizing pattern1 in terms of pattern0
+Create an abstraction of pattern1 as a constant sequence
+
+Walk through how matching partial data to a part of prior data would work
+
+******* Adding data from pattern2
+
+One question we should address when adding new data to the memory is how one can match prior data to only a part of the new data e.g. writing the new data in terms of multiple abstractions.
 
 The main question is how does this help with inference?  One reason is having more partial data in memory means given an inference problem there is more chance of getting a partial match will let us infer the unknown based on prior data (of course the more partial data there is the more one would have to search to find a match).  Let's add a bit more data and then try to see how the stored structures can be used to solve inference problems.
 
