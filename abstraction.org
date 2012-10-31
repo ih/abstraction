@@ -624,6 +624,26 @@ And pose problems that test this different type of abstraction.
   completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'v0'], 'v0'])
 #+end_src
 
+Another type of pattern we should look at is when the data consists of parts that each have their own structure that may vary, but the relationship between these parts is what matters.  Intuitively digit recognition has is this type of problem where recognizing the character such as 5 is recognizing a flat top part connected to a vertical bar and loop part in a particular way.
+
+#+name: configuration_of_parts_data
+#+begin_src python :noweb yes
+  #this pattern is 3 patterns that come one after another
+  #the first pattern is a constant series
+  #the second is an alternating pattern
+  #the third is a series of
+  pattern2 = [[[8,8,8,8,8,1,0,1,0,1,0,9,9,9,9,0,0,0,0], 1],
+              [[7,7,7,3,6,3,6,3,6,3,6,3,6,3,6,3,6,3,6,4,4,4,4,4,0,0,0,0,0], 1]
+              [[0,0,0,0,0,0,0,0,0,2,4,2,4,2,4,5,5,5,1,1,1], 1]]
+  
+  #subpatterns are out of order
+  notpattern2 = [[[1,0,1,0,1,0,8,8,8,8,8,9,9,9,9,0,0,0,0], 0],
+                 [[4,4,4,4,4,0,0,0,0,0,7,7,7,3,6,3,6,3,6,3,6,3,6,3,6,3,6,3,6], 0],
+                 [[0,0,0,0,0,0,0,0,0,5,5,5,1,1,1, 2,4,2,4,2,4,], 1]]
+  
+#+end_src
+
+
 
 **** The process of abstraction
 The notion of abstraction we'll be using is very similar to the concept of lambda abstraction in the lambda calculus.  Creating abstractions from data will be similar to the process of anti-unification.  The major adaptation will be related to the fact that variables can be replaced with multiple elements that get inserted into their place instead of a single element (see the definition of substitution above).  
@@ -941,17 +961,15 @@ Let's test the update match on the old cases.
 For the most part the fixed match meets our expectation, but we also found a case where this algorithm can fail to find a valid binding if it exists.  Rather than special case a fix, we'll wait to resolve this issue when we begin to look at match between abstractions.
 
 ****** Abstracting from concrete data and abstract data
+
 ***** Using abstractions
 We have a way of creating abstractions from data, but how is this used in the process of solving inference problems?  We'll extend how data is added to memory as well as how inference problems are solved by an agent by incorporating abstraction.
 
 We'll start with how inference problems can be solved with abstraction to gain insight on how abstractions should be stored.
+****** Storing abstractions
+Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?  Storage space.
 
-****** Solving inference problems with abstraction
-Earlier we looked at one example of how abstraction can help solve an inference problem (the section following the code block named abstraction).  Let's look at some of the other additional inference problems we listed and see how abstraction might be used to solve them.  
-
-******* classify_problem2
-In this problem the prior_data is 
-
+Let's walk through what the storage process might look like for the data we've been using in our examples
 #+begin_src python :noweb yes :results output
 <<binary_data>>
 print 'pattern0:%s' % pattern0
@@ -988,7 +1006,6 @@ instead of
 
 Now suppose the next data we get is [[1, 1], 0].  What are possible things we could do when adding this to memory.  We could first see if it's an instantiation of an abstraction we already know.  This can be done by applying match with all the known abstractions.
 
-
 #+begin_src python :noweb yes :results output
   from abstraction import *
   
@@ -1018,9 +1035,17 @@ Now we can try and create new abstractions
 
 Intuitively the first abstraction ['f', ['v0'], [0]] seems like it captures some of the structure of pattern0.  One interpretation is it is a list of two things and the first element is of the first is 1 and the second element is 0.  The second says all the data consists of two elements where the first element starts with two ones.
 
-The main question is how does this help with inference?  One reason is having more partial data in memory means given an inference problem there is more chance of getting a partial match will let us infer the unknown based on prior data.
+Perhaps it would also make sense to try and combine the two abstractions into a single abstraction e.g. ['f', ['v0'], [0]] and [[1, 'v0'], 'v1'] could become [[1, 'v0'], [0]].  We'll hold off on exploring the tradeoffs of doing such a thing until later though [DD].
 
+One question we should address when adding new data to the memory is how one can match prior data to only a part of the new data e.g. writing the new data in terms of multiple abstractions.
+
+
+The main question is how does this help with inference?  One reason is having more partial data in memory means given an inference problem there is more chance of getting a partial match will let us infer the unknown based on prior data (of course the more partial data there is the more one would have to search to find a match).  Let's add a bit more data and then try to see how the stored structures can be used to solve inference problems.
+
+
+****** Solving inference problems with abstraction
+Earlier we looked at one example of how abstraction can help solve an inference problem (the section following the code block named abstraction).  Let's look at some of the other additional inference problems we listed and see how abstraction might be used to solve them.  
+
+******* classify_problem2
 ******* classify_problem3
 ******* completion_problem2
-****** Storing abstractions
-Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?  Storage space.
