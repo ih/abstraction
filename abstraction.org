@@ -278,9 +278,9 @@ Matching elements is kind of tricky because variables in the partial_data can ma
           <<match_list_case_variable_case>>
       else:
           #if it's the last element of partial data and there is more than one element left in
-          #prior data then it's not a match
+          #prior data then it's not a match or if there are no more elements in prior_data, but still 
           if partial_data_position == len(partial_data) - 1 and\
-            len(prior_data[prior_data_position:]) > 1:
+            len(prior_data[prior_data_position:]) > 1 or len(partial_data[partial_data_position:]) > 1 and prior_data_position == len(prior_data) - 1:
               return None
           else:
               matches.append(match(partial_data_element, prior_data[prior_data_position]))
@@ -310,7 +310,7 @@ In the case where the current variable element is also the last element then it 
 
 #+name: match_list_case_variable_case
 #+begin_src python :noweb yes 
-  if partial_data_element == partial_data[-1]:
+  if partial_data_position == len(partial_data) - 1:
       matches.append({partial_data_element : prior_data[prior_data_position:]})
   else:
       next_element = partial_data[partial_data_position+1]
@@ -1046,7 +1046,7 @@ Now let's add [[1, 1, 1, 0, 0, 0], 1] to memory.
 
 We'll try to first rewrite it in terms of any known abstractions.  
 
-#+begin_src python :noweb yes :results output
+#+begin_src python :noweb yes :tangle test.py
   from abstraction import *
   <<binary_data>>
 
