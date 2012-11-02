@@ -1045,8 +1045,8 @@ Perhaps it would also make sense to try and combine the two abstractions into a 
 Now let's add [[1, 1, 1, 0, 0, 0], 1] to memory.
 
 We'll try to first rewrite it in terms of any known abstractions.  
-
-#+begin_src python :noweb yes :tangle test.py
+********* Rewriting in terms of existing abstractions
+#+begin_src python :noweb yes :results output :tangle test.py
   from abstraction import *
   <<binary_data>>
 
@@ -1060,8 +1060,38 @@ We'll try to first rewrite it in terms of any known abstractions.
 #+end_src
 
 #+RESULTS:
+: {'v0': [1, 1, 0, 0, 0], 'v1': [1]}
+: None
+: None
 
+One interesting thing to note is in the current system we can only ever match new data to abstractions that have been created directly from the non-partial data.  So e.g. g and h don't match because the 'f' symbol only occurs internally and would never appear in external data.  One question is whether it would be useful to try and match higher level abstractions to low-level data.  Intuitively this seems like trying to find parts of an object first then recognize a whole as opposed to trying to find the unchanging structure of the whole first then determining the possibly changing parts.
 
+What we mean by trying to find the parts of the whole is kind of vague, but one can get a sense by looking at match(['f', ['v0'], [0]], [[1, 1, 1, 0, 0, 0], 1]).  If one were to redefine match to special case function applications, it seems like you would try to find where the arguments to the application ('v0' and 0 in the example) matched the data and then if matches were found you could try and see if those pieces related to each other in the right way by looking at the body of the function ('f' in this case).  Looking at this example it seems not that useful so we'll ignore it for now, but keep it in mind as a potential place for parrallelization [DD] [P] [E].  ([E] will be used to indicate possible places to improve efficiency)
+
+The past two paragraphs indicate we can structure the abstractions in a way that we don't have to try all of them when checking to see if some data is an instance of it. [E]  
+
+We have one match so we can rewrite the new data as ['f', [1, 1, 0, 0, 0], [1]].  In this form we see we can attempt to further rewrite the expression in terms of some of the higher-order (right term?) abstractions.
+
+#+begin_src python :noweb yes :results output
+  from abstraction import *
+  pattern1_1 = ['f', [1, 1, 0, 0, 0], [1]]
+  
+  g = ['f', ['v0'], [0]]
+  h = ['f', [1, 'v1'], ['v2']]
+    
+  print match(g, pattern1_1)
+  print match(h, pattern1_1)
+  
+#+end_src
+
+#+RESULTS:
+: None
+: {'v1': [1, 0, 0, 0], 'v2': [1]}
+
+This gives us ['h', [1, 0, 0, 0], [1]] so we save an extra character.
+
+Now that we've finished rewriting pattern1[1] in terms of abstractions already in memory, we can try and create new abstractions from it.
+********* creating new abstractions 
 
 ******* Recognizing pattern1 in terms of pattern0
 Create an abstraction of pattern1 as a constant sequence
