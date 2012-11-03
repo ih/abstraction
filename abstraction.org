@@ -911,10 +911,12 @@ Just like the last version of match we can determine how much of prior_data we n
       #the first non_variable which is the next_element
       assert(non_variables_in_partial[0] == next_element)
       last_prior_position = find_last_prior_position(len(non_variables_in_partial)-1)
+      #TODO(irvin) should check whether things match the next_element not whether they are equal
       matching_positions = [i for i,element
                             in enumerate(prior_data[prior_data_position:last_prior_position+1],
                                          start=prior_data_position)
                             if element == next_element]
+  
       return matching_positions
   
 #+end_src
@@ -1046,7 +1048,7 @@ Now let's add [[1, 1, 1, 0, 0, 0], 1] to memory.
 
 We'll try to first rewrite it in terms of any known abstractions.  
 ********* Rewriting in terms of existing abstractions
-#+begin_src python :noweb yes :results output :tangle test.py
+#+begin_src python :noweb yes :results output :tangle no
   from abstraction import *
   <<binary_data>>
 
@@ -1092,6 +1094,67 @@ This gives us ['h', [1, 0, 0, 0], [1]] so we save an extra character.
 
 Now that we've finished rewriting pattern1[1] in terms of abstractions already in memory, we can try and create new abstractions from it.
 ********* creating new abstractions 
+The current data in memory is the following:
+
+['h', [1, 0, 0, 0], [1]]
+['f', [1], [0]]
+['f', [], [0]]
+['f', [1, 0, 0], [1]]
+
+with abstractions
+f = [[1, 'v0'], 'v1']
+g = ['f', ['v0'], [0]]
+h = ['f', [1, 'v1'], ['v2']]
+
+Let's see what kind of abstractions we get from ['h', [1, 0, 0, 0], [1]].
+
+#+begin_src python :noweb yes :results output
+
+  from abstraction import *
+  pattern1_1 = ['h', [1, 0, 0, 0], [1]]
+  pattern0_1 = ['f', [1], [0]]
+  pattern0_0 = ['f', [], [0]]
+  pattern1_0 = ['f', [1, 0, 0], [1]]
+  
+  print abstract(pattern1_1, pattern0_1)
+  print abstract(pattern1_1, pattern0_0)
+  print abstract(pattern1_1, pattern1_0)
+#+end_src
+
+#+RESULTS:
+: ['v0', [1, 'v1'], ['v2']]
+: ['v3', ['v4'], ['v5']]
+: ['v6', [1, 0, 0, 'v7'], [1]]
+
+********* Rewriting in terms of the new abstractions
+If we try to rewrite the data in terms of the new abstractions we get
+
+#+begin_src python :noweb yes :results output :tangle test.py
+  from abstraction import *
+  new_abstractions = [['v0', [1, 'v1'], ['v2']],
+                      ['v3', ['v4'], ['v5']],
+                      ['v6', [1, 0, 0, 'v7'], [1]]]
+  pattern0 = [['f', [], [0]], ['f', [1], [0]]]
+  pattern1 = [['f', [1, 0, 0], [1]], ['h', [1, 0, 0, 0], [1]]]
+  
+  # for pattern in pattern0:
+  #     for abstraction in new_abstractions:
+  #         print match(abstraction, pattern)
+  
+  # for pattern in pattern1:
+  #     for abstraction in new_abstractions:
+  #         print match(abstraction, pattern)
+  
+  
+  print match(new_abstractions[2], pattern1[0])
+#+end_src
+
+#+RESULTS:
+: None
+
+One major question this example brings up is how do we know which data should be rewritten in terms of a new abstraction.  Intuitively pattern1 examples should be rewritten in terms of abstractions generated from their data, but how do we recognize this?  One criteria could be compression. 
+
+
 
 ******* Recognizing pattern1 in terms of pattern0
 Create an abstraction of pattern1 as a constant sequence
