@@ -263,8 +263,6 @@ In all cases it seems natural that the return of a matching should be a function
 
 The interesting case is when the partial_data is a list.  Let's use the data in example_data_many_matches to guide development of the algorithm.  For now we'll assume matching of the elements occurs via iteration over the list from left to right.  It's not clear why it would be beneficial to do so otherwise, but we'll tag this [DD] (design decision) and can revisit things aren't working.  
 
-It's been asserted that the partial_data is a list, but before we start iterating through and matching elements there are a few checks on the prior_data we can do that would imply there is no match mainly if it is not a list or two small i.e. if there are not enough elements to match with partial_data.
-  
 Matching elements is kind of tricky because variables in the partial_data can match multiple elements of the corresponding prior_data so we need to keep track of the current position for both lists as we iterate through the partial_data.  
 
 #+name: match_list_case
@@ -277,16 +275,20 @@ Matching elements is kind of tricky because variables in the partial_data can ma
           #possibly several steps ahead of partial_data_position
           <<match_list_case_variable_case>>
       else:
-          #if it's the last element of partial data and there is more than one element left in
-          #prior data then it's not a match or if there are no more elements in prior_data, but still 
-          if partial_data_position == len(partial_data) - 1 and\
-            len(prior_data[prior_data_position:]) > 1 or len(partial_data[partial_data_position:]) > 1 and prior_data_position == len(prior_data) - 1:
-              return None
-          else:
-              matches.append(match(partial_data_element, prior_data[prior_data_position]))
-              prior_data_position += 1
+          matches.append(match(partial_data_element, prior_data[prior_data_position]))
+          prior_data_position += 1
+  #if there is still data in prior_data then it's not a match
+ 
+  if prior_data_position < len(prior_data):
+      return None
   <<match_list_case_combine_matches>>
   
+#+end_src
+
+
+#+name: count_non_variables
+#+begin_src python :noweb yes
+
 #+end_src
 
 At this point it's probably a good idea to look at the different possibilites for the return type of matching so we can fill in the missing pieces.
@@ -312,6 +314,9 @@ In the case where the current variable element is also the last element then it 
 #+begin_src python :noweb yes 
   if partial_data_position == len(partial_data) - 1:
       matches.append({partial_data_element : prior_data[prior_data_position:]})
+      #increment this for the check whether there is more prior_data left even though all
+      #partial_data has been iterated through
+      prior_data_position += 1
   else:
       next_element = partial_data[partial_data_position+1]
       try:
@@ -460,10 +465,16 @@ An example of prior data from an inference problem could be
 
 Applying match to a case where it should match and shouldn't match would like the following
 
-#+begin_src python :noweb yes :tangle no :results output
-  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
-  
-  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
+#+begin_src python :noweb yes :tangle test_match.py
+  test1 =  match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
+  print test1
+  assert(test1 == {'v0': [0]})
+  test2_0 = match([1, 1, 1, 1], [1, 1, 1, 1, 1])
+  print test2_0
+  asssert(test2_0 is None)
+  test2 = match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
+  print test2
+  assert(test2 is None)
 #+end_src
 
 #+RESULTS
@@ -472,7 +483,7 @@ Applying match to a case where it should match and shouldn't match would like th
 
 We'll also want to look at the cases where matching can have several possibilities such as in variable_case_matching_list_example.
 
-#+begin_src python :noweb yes :tangle no
+#+begin_src python :noweb yes :tangle test_match.py
   for i in range(10):
       print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
 #+end_src
@@ -911,11 +922,11 @@ Just like the last version of match we can determine how much of prior_data we n
       #the first non_variable which is the next_element
       assert(non_variables_in_partial[0] == next_element)
       last_prior_position = find_last_prior_position(len(non_variables_in_partial)-1)
-      #TODO(irvin) should check whether things match the next_element not whether they are equal
+  
       matching_positions = [i for i,element
                             in enumerate(prior_data[prior_data_position:last_prior_position+1],
                                          start=prior_data_position)
-                            if element == next_element]
+                            if match(next_element, element) is not None]
   
       return matching_positions
   
