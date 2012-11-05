@@ -316,7 +316,7 @@ In the case where the current variable element is also the last element then it 
       matches.append({partial_data_element : prior_data[prior_data_position:]})
       #increment this for the check whether there is more prior_data left even though all
       #partial_data has been iterated through
-      prior_data_position += 1
+      prior_data_position = len(prior_data)
   else:
       next_element = partial_data[partial_data_position+1]
       try:
@@ -466,12 +466,13 @@ An example of prior data from an inference problem could be
 Applying match to a case where it should match and shouldn't match would like the following
 
 #+begin_src python :noweb yes :tangle test_match.py
+  from abstraction import *
   test1 =  match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
   print test1
   assert(test1 == {'v0': [0]})
   test2_0 = match([1, 1, 1, 1], [1, 1, 1, 1, 1])
   print test2_0
-  asssert(test2_0 is None)
+  assert(test2_0 is None)
   test2 = match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
   print test2
   assert(test2 is None)
