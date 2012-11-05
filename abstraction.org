@@ -270,6 +270,12 @@ Matching elements is kind of tricky because variables in the partial_data can ma
   matches = []
   prior_data_position = 0
   for partial_data_position, partial_data_element in enumerate(partial_data):
+      #if there's no more prior data and there is still non-variable partial_data then this is
+      #not a match so break
+      if prior_data_position >= len(prior_data) and not (is_variable(partial_data_element) and
+                                                         partial_data_position == len(partial_data) - 1):
+          matches.append(None)
+          break
       if is_variable(partial_data_element):
           #this case will need to increment prior_data_position appropriately
           #possibly several steps ahead of partial_data_position
@@ -278,7 +284,7 @@ Matching elements is kind of tricky because variables in the partial_data can ma
           matches.append(match(partial_data_element, prior_data[prior_data_position]))
           prior_data_position += 1
   #if there is still data in prior_data then it's not a match
- 
+  
   if prior_data_position < len(prior_data):
       return None
   <<match_list_case_combine_matches>>
@@ -486,7 +492,12 @@ We'll also want to look at the cases where matching can have several possibiliti
 
 #+begin_src python :noweb yes :tangle test_match.py
   for i in range(10):
-      print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
+      test3 = match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1])
+      print test3
+      assert(test3 in [{'v0': [1], 'v1': [1, 0, 1, 0, 0, 1]},
+                       {'v0': [1, 0, 1], 'v1': [1, 0, 0, 1]},
+                       {'v0': [1, 0, 1, 0, 1], 'v1': [0, 1]},
+                       {'v0': [1, 0, 1, 0, 1, 0], 'v1': [1]}])
 #+end_src
 
 #+RESULTS
@@ -821,17 +832,22 @@ What are we trying to optimize?  The above examples seem to indicate we'd like t
 
 We can test the algorithm on our worked through example to make sure it's what we expect.
 
-#+begin_src python :noweb yes :tangle no
+#+begin_src python :noweb yes :tangle test_abstract.py
   from abstraction import *
-  
   <<binary_data>>
   abstraction = abstract(pattern1[0], pattern1[1])
   print abstraction
   assert(abstraction == [[1, 1, 'v0', 0, 0, 'v1'], 1])
-  print match(abstraction, pattern1[0])
-  print match(abstraction, pattern1[1])
   abstraction2 = abstract(pattern0[0], pattern0[1])
   print abstraction2
+  assert(abstraction2 == [[1, 'v2'], 0])
+#+end_src
+
+#+begin_src python :noweb yes :tangle test_match.py
+  <<binary_data>>
+  abstraction = [[1, 1, 'v0', 0, 0, 'v1'], 1]
+  print match(abstraction, pattern1[0])
+  print match(abstraction, pattern1[1])
 #+end_src
 
 ******** Changing match
@@ -933,19 +949,14 @@ Just like the last version of match we can determine how much of prior_data we n
   
 #+end_src
 
-Let's test the update match on the old cases.
+Let's test the update match on a case where the algorithm can fail.
 
-#+begin_src python :noweb yes :tangle no
-  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
-  
-  print match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1, 1], 0])
+#+begin_src python :noweb yes :tangle test_match.py
   for i in range(10):
-      print match(['v0', 0, 'v1'], [1,0,1,0,1,0,0,1]) 
-
-  for i in range(10):
-      #a case where this algorithm can fail to find the existing valid binding  
-      print match(['v0', 0], [1,0,1,0,1,0,0]) 
-      
+      #a case where this algorithm can fail to find the existing valid binding
+      test4 = match(['v0', 0], [1,0,1,0,1,0,0])
+      print test4
+      assert(test4 in [None, {'v0': [1, 0, 1, 0, 1, 0]}])
 #+end_src
 
 #+RESULTS
@@ -1024,13 +1035,12 @@ instead of
 ******** Pattern0[1]
 Now suppose the next data we get is [[1, 1], 0].  What are possible things we could do when adding this to memory.  We could first see if it's an instantiation of an abstraction we already know.  This can be done by applying match with all the known abstractions.
 
-#+begin_src python :noweb yes :results output
-  from abstraction import *
-  
+#+begin_src python :noweb yes :results output :tangle test_match.py
   #the abstraction f
   f = [[1, 'v0'], 'v1']
-  
-  print match(f, [[1,1],0])
+  test5 = match(f, [[1,1],0])
+  print test5
+  assert(test5 == {'v0': [1], 'v1': [0]})
 #+end_src
 
 #+RESULTS:
@@ -1060,17 +1070,20 @@ Now let's add [[1, 1, 1, 0, 0, 0], 1] to memory.
 
 We'll try to first rewrite it in terms of any known abstractions.  
 ********* Rewriting in terms of existing abstractions
-#+begin_src python :noweb yes :results output :tangle no
-  from abstraction import *
-  <<binary_data>>
-
+#+begin_src python :noweb yes :results output :tangle test_match.py
   f = [[1, 'v0'], 'v1']
   g = ['f', ['v0'], [0]]
   h = ['f', [1, 'v1'], ['v2']]
   
-  print match(f, pattern1[1])
-  print match(g, pattern1[1])
-  print match(h, pattern1[1])
+  test6 = match(f, pattern1[1])
+  print test6
+  assert(test6 == {'v0': [1, 1, 0, 0, 0], 'v1': [1]})
+  test7 = match(g, pattern1[1])
+  print test7
+  assert(test7 is None)
+  test8 = match(h, pattern1[1])
+  print test8
+  assert(test8 is None)
 #+end_src
 
 #+RESULTS:
