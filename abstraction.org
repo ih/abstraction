@@ -1099,16 +1099,18 @@ The past two paragraphs indicate we can structure the abstractions in a way that
 
 We have one match so we can rewrite the new data as ['f', [1, 1, 0, 0, 0], [1]].  In this form we see we can attempt to further rewrite the expression in terms of some of the higher-order (right term?) abstractions.
 
-#+begin_src python :noweb yes :results output
-  from abstraction import *
+#+begin_src python :noweb yes :results output :tangle test_match.py
+  from abstraction import *;
   pattern1_1 = ['f', [1, 1, 0, 0, 0], [1]]
   
   g = ['f', ['v0'], [0]]
   h = ['f', [1, 'v1'], ['v2']]
-    
-  print match(g, pattern1_1)
-  print match(h, pattern1_1)
-  
+  test9 = match(g, pattern1_1)
+  print test9
+  assert(test9 is None)
+  test10 = match(h, pattern1_1)
+  print test10
+  assert(test10 == {'v1': [1, 0, 0, 0], 'v2': [1]})
 #+end_src
 
 #+RESULTS:
@@ -1154,7 +1156,7 @@ Let's see what kind of abstractions we get from ['h', [1, 0, 0, 0], [1]].
 ********* Rewriting in terms of the new abstractions
 If we try to rewrite the data in terms of the new abstractions we get
 
-#+begin_src python :noweb yes :results output :tangle test.py
+#+begin_src python :noweb yes :results output :tangle test_match.py
   from abstraction import *
   new_abstractions = [['v0', [1, 'v1'], ['v2']],
                       ['v3', ['v4'], ['v5']],
@@ -1162,29 +1164,78 @@ If we try to rewrite the data in terms of the new abstractions we get
   pattern0 = [['f', [], [0]], ['f', [1], [0]]]
   pattern1 = [['f', [1, 0, 0], [1]], ['h', [1, 0, 0, 0], [1]]]
   
-  # for pattern in pattern0:
-  #     for abstraction in new_abstractions:
-  #         print match(abstraction, pattern)
+  for pattern in pattern0:
+      for abstraction in new_abstractions:
+          print '%s,%s =>' % (abstraction, pattern)
+          print match(abstraction, pattern)
+          print '\n'
   
-  # for pattern in pattern1:
-  #     for abstraction in new_abstractions:
-  #         print match(abstraction, pattern)
-  
-  
-  print match(new_abstractions[2], pattern1[0])
+  for pattern in pattern1:
+      for abstraction in new_abstractions:
+          print '%s,%s =>' % (abstraction, pattern)
+          print match(abstraction, pattern)
+          print '\n'
 #+end_src
 
 #+RESULTS:
+: {'v1': [1, 0, 0, 0], 'v2': [1]}
+: ['v0', [1, 'v1'], ['v2']],['f', [], [0]] =>
 : None
+: 
+: 
+: ['v3', ['v4'], ['v5']],['f', [], [0]] =>
+: {'v3': ['f'], 'v4': [], 'v5': [0]}
+: 
+: 
+: ['v6', [1, 0, 0, 'v7'], [1]],['f', [], [0]] =>
+: None
+: 
+: 
+: ['v0', [1, 'v1'], ['v2']],['f', [1], [0]] =>
+: {'v0': ['f'], 'v1': [], 'v2': [0]}
+: 
+: 
+: ['v3', ['v4'], ['v5']],['f', [1], [0]] =>
+: {'v3': ['f'], 'v4': [1], 'v5': [0]}
+: 
+: 
+: ['v6', [1, 0, 0, 'v7'], [1]],['f', [1], [0]] =>
+: None
+: 
+: 
+: ['v0', [1, 'v1'], ['v2']],['f', [1, 0, 0], [1]] =>
+: {'v0': ['f'], 'v1': [0, 0], 'v2': [1]}
+: 
+: 
+: ['v3', ['v4'], ['v5']],['f', [1, 0, 0], [1]] =>
+: {'v3': ['f'], 'v4': [1, 0, 0], 'v5': [1]}
+: 
+: 
+: ['v6', [1, 0, 0, 'v7'], [1]],['f', [1, 0, 0], [1]] =>
+: {'v6': ['f'], 'v7': []}
+: 
+: 
+: ['v0', [1, 'v1'], ['v2']],['h', [1, 0, 0, 0], [1]] =>
+: {'v0': ['h'], 'v1': [0, 0, 0], 'v2': [1]}
+: 
+: 
+: ['v3', ['v4'], ['v5']],['h', [1, 0, 0, 0], [1]] =>
+: {'v3': ['h'], 'v4': [1, 0, 0, 0], 'v5': [1]}
+: 
+: 
+: ['v6', [1, 0, 0, 'v7'], [1]],['h', [1, 0, 0, 0], [1]] =>
+: {'v6': ['h'], 'v7': [0]}
+: 
+One major question this example brings up is how do we know which data should be rewritten in terms of a new abstraction.  Intuitively pattern1 examples should be rewritten in terms of abstractions generated from their data, but how do we recognize this?  One criteria could be compression.  Probably the main one though is performance on inference, if abstractions are not useful for inference then they should be removed.  
 
-One major question this example brings up is how do we know which data should be rewritten in terms of a new abstraction.  Intuitively pattern1 examples should be rewritten in terms of abstractions generated from their data, but how do we recognize this?  One criteria could be compression. 
-
-
+Optimizing for compression may also optimize for inference because in some sense you are making this assumption/hope that new data will have common structure with prior data and that is why you can perform inference.  If you have good compression it means you've extracted a lot of the structure/commonality of the existing data out and because of your assumption this can be used when inferring something about new data.
 
 ******* Recognizing pattern1 in terms of pattern0
 Create an abstraction of pattern1 as a constant sequence
 
 Walk through how matching partial data to a part of prior data would work
+
+Show how this can get better compression than not rewriting pattern1 in terms of pattern0
 
 ******* Adding data from pattern2
 
