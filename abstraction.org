@@ -1226,12 +1226,50 @@ If we try to rewrite the data in terms of the new abstractions we get
 : ['v6', [1, 0, 0, 'v7'], [1]],['h', [1, 0, 0, 0], [1]] =>
 : {'v6': ['h'], 'v7': [0]}
 : 
-One major question this example brings up is how do we know which data should be rewritten in terms of a new abstraction.  Intuitively pattern1 examples should be rewritten in terms of abstractions generated from their data, but how do we recognize this?  One criteria could be compression.  Probably the main one though is performance on inference, if abstractions are not useful for inference then they should be removed.  
+One major question this example brings up is how do we know which data should be rewritten in terms of a new abstraction.  Intuitively pattern1 examples should be rewritten in terms of abstractions generated from their data, but how do we recognize this?  One criteria could be acompression.  Probably the main one though is performance on inference, if abstractions are not useful for inference then they should be removed.  
 
 Optimizing for compression may also optimize for inference because in some sense you are making this assumption/hope that new data will have common structure with prior data and that is why you can perform inference.  If you have good compression it means you've extracted a lot of the structure/commonality of the existing data out and because of your assumption this can be used when inferring something about new data.
 
+******* Formalizing the problem/process of storing abstractions
+******** Enumeration of abstractions
+******** Compression as a criteria for selecting abstractions
 ******* Recognizing pattern1 in terms of pattern0
-Create an abstraction of pattern1 as a constant sequence
+Intuitively it seems like we want to be able to recognize parts of new data in terms of previously recognized abstractions.  In this section we look at how the match algorithm might do this and try to better understand why this would be a good thing (if it is).
+
+We'll start by looking at pattern0 and its relation to pattern1 with the idea being that pattern1 is two pattern0s put together with the same length, but different characters.  
+
+******** abstractions for pattern0
+Informally pattern0 can be described as any list where each element is the same character.  Examples we've listed so far are
+
+#+begin_src python :noweb yes :results value
+  <<binary_data>>
+  <<additional_prior_data>>
+  
+  return pattern0+more_pattern0
+#+end_src
+
+#+RESULTS:
+| (1)             | 0 |
+| (1 1)           | 0 |
+| (1 1 1 1 1)     | 0 |
+| (1 1)           | 0 |
+| (2 2)           | 0 |
+| (3 3 3 3 3)     | 0 |
+| (5 5 5 5 5 5 5) | 0 | 
+
+What are the abstractions we get from this data?
+
+#+name: 
+#+begin_src python :noweb yes :tangle pattern0.py
+<<binary_data>>
+<<additional_prior_data>>
+
+abstract
+#+end_src  
+
+
+
+
 
 Walk through how matching partial data to a part of prior data would work
 
