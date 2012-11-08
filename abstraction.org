@@ -996,7 +996,7 @@ Now that abstractions can be part of the prior data when we add something new to
 
 Let's walk through what the storage process might look like for the data we've been using in our examples
 
-******* Adding datat from pattern1 and pattern2
+******* Adding data from pattern1 and pattern2
 ******** Pattern0[0] and Pattern1[0] 
 #+begin_src python :noweb yes :results output
 <<binary_data>>
@@ -1232,7 +1232,20 @@ Optimizing for compression may also optimize for inference because in some sense
 
 ******* Formalizing the problem/process of storing abstractions
 ******** Enumeration of abstractions
+What are the possible ways to use abstraction as new data comes in?  The items on this list are not mututally exclusive.
+
+1) run abstract with the new data against everything in memory
+2) try to rewrite the new data in terms of existing abstractions
+3) try to rewrite and replace old data in terms of new abstractions created by the new data
+4) try to rewrite but not replace old data in terms of new abstractions created by the new data
+
+The brute force thing to do would be every time a new piece of data comes in run abstract with it against everything in memory (both abstractions and data). Add every new abstraction created to memory.  For each new abstraction 1) treat it as if it were new data entering memory (so start from the beginnning) 2) try to rewrite everything in memory in terms of the abstraction, add any new rewrite to memory and treat it as a new data entering memory
+
+This would give us a huge amount of data and possibly infinite running process (are these assertions true?) [TQ] TQ for theory question, but for inference we would have everything in the prior data that could possibly be useful [TQ].
+
+Maybe we should have individual processes always running for abstracting and rewriting and we could balance these out with processes that are at the same time removing things from memory. Ultimately we need a better sense of how abstractions can be used to solve inference problems to guide the design of what is stored in memory.
 ******** Compression as a criteria for selecting abstractions
+We need some way 
 ******* Recognizing pattern1 in terms of pattern0
 Intuitively it seems like we want to be able to recognize parts of new data in terms of previously recognized abstractions.  In this section we look at how the match algorithm might do this and try to better understand why this would be a good thing (if it is).
 
