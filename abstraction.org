@@ -990,8 +990,8 @@ For the most part the fixed match meets our expectation, but we also found a cas
 ***** Using abstractions
 We have a way of creating abstractions from data, but how is this used in the process of solving inference problems?  We'll extend how data is added to memory as well as how inference problems are solved by an agent by incorporating abstraction.
 
-We'll start with how inference problems can be solved with abstraction to gain insight on how abstractions should be stored.
-****** Storing abstractions
+
+****** [SKIP] Storing abstractions
 Now that abstractions can be part of the prior data when we add something new to memory should we try and write it in terms of existing abstractions?  How might storing data in terms of existing abstractions help to solve inference problems?  Perhaps efficiency?  Storage space.
 
 Let's walk through what the storage process might look like for the data we've been using in our examples
@@ -1245,7 +1245,10 @@ This would give us a huge amount of data and possibly infinite running process (
 
 Maybe we should have individual processes always running for abstracting and rewriting and we could balance these out with processes that are at the same time removing things from memory. Ultimately we need a better sense of how abstractions can be used to solve inference problems to guide the design of what is stored in memory, but we'll first start with a hypothesis on how to store it then let the inference performance determine how to adjust things.
 ******** Compression as a criteria for selecting abstractions
-We need some way 
+One heuristic for determing what abstractions to create and use is to try and minimize the size of memory.  A straight-forward algorithm for this would be
+
+
+
 ******* Recognizing pattern1 in terms of pattern0
 Intuitively it seems like we want to be able to recognize parts of new data in terms of previously recognized abstractions.  In this section we look at how the match algorithm might do this and try to better understand why this would be a good thing (if it is).
 
@@ -1294,10 +1297,44 @@ One question we should address when adding new data to the memory is how one can
 
 The main question is how does this help with inference?  One reason is having more partial data in memory means given an inference problem there is more chance of getting a partial match will let us infer the unknown based on prior data (of course the more partial data there is the more one would have to search to find a match).  Let's add a bit more data and then try to see how the stored structures can be used to solve inference problems.
 
-
-****** Solving inference problems with abstraction
+****** [SKIP] Solving inference problems with abstraction
 Earlier we looked at one example of how abstraction can help solve an inference problem (the section following the code block named abstraction).  Let's look at some of the other additional inference problems we listed and see how abstraction might be used to solve them.  
 
+******* The Utility of Abstraction
+******** Compression
+Abstractions can save space in memory by removing redundancy.
+******** Hierarchical Search
+How can abstractions in memory help in solving inference problems?  Multiple levels of abstraction can 
 ******* classify_problem2
 ******* classify_problem3
 ******* completion_problem2
+****** Solving the examples with abstraction
+The complexity of possible approaches being explored in "Storing abstractions" and "Solving inference problems with abstraction" seems like it could be a bit premature and risks creating the wrong generalizations.  This section is a second take to developing the algorithms for using abstraction by focusing on only adding enough complexity to solve the examples presented at the beginning of "More Inference Problems".  We start with the function for creating abstractions developed in "Creating abstractions" and ask what is the simplest system that can apply it to solve additional_binary_classification_problems and additional_binary_completion_problems.
+
+Let's start by incrementally processing data from pattern0 and pattern1 and trying to solve additional_binary_classification_problems at each step.
+
+We initialize the agent and try to solve the inference problem with no prior data.
+#+name: 
+#+begin_src python :noweb yes :results output :tangle second_approximation.py
+  from abstraction import *
+  from utility import *
+  <<binary_data>>
+  <<additional_binary_classification_problems>>
+  
+  agent = Agent()
+  
+  print_and_assert(agent.solve(classify_problem2), None)
+#+end_src
+
+#+RESULTS:
+
+=======Literate Programming aside======
+One thing we have been doing is to print output as we go along then use this to create test cases, which help verify that any future changes to the code are correct.  One way to streamline this is to have a function that both prints and asserts.  We'll start to build up generic utility functions in a file utility.py
+
+#+name: print_and_assert
+#+begin_src python :noweb yes :tangle utility.py
+  def print_and_assert(function_output, true_value):
+      print function_output
+      assert(function_output == true_value)
+#+end_src
+
