@@ -1314,7 +1314,7 @@ The complexity of possible approaches being explored in "Storing abstractions" a
 Let's start by incrementally processing data from pattern0 and pattern1 and trying to solve additional_binary_classification_problems at each step.
 
 We initialize the agent and try to solve the inference problem with no prior data.
-#+name: 
+
 #+begin_src python :noweb yes :results output :tangle second_approximation.py
   from abstraction import *
   from utility import *
@@ -1322,6 +1322,7 @@ We initialize the agent and try to solve the inference problem with no prior dat
   <<additional_binary_classification_problems>>
   
   agent = Agent()
+  print 'classify_problem2 %s' % classify_problem2.partial_data
   
   print_and_assert(agent.solve(classify_problem2), None)
 #+end_src
@@ -1337,4 +1338,40 @@ One thing we have been doing is to print output as we go along then use this to 
       print function_output
       assert(function_output == true_value)
 #+end_src
+
+Next we add pattern0[0] and try to solve the problem again.
+
+#+begin_src python :noweb yes :tangle second_approximation.py
+  agent.memory.add(pattern0[0])
+  
+  <<binary_data_classification_problems>>
+  print agent.memory.memory
+
+  print_and_assert(agent.solve(classify_problem2), None)
+#+end_src
+
+#+RESULTS:
+: [[[1], 0]]
+: None
+
+As expected there isn't enough data to solve the problem or generalize.  If we add pattern0[1] things should get interesting.  Let's first add it and attempt to solve.
+
+#+begin_src python :noweb yes :tangle second_approximation.py
+  agent.memory.add(pattern0[1])
+  print agent.memory.memory
+  
+  print_and_assert(agent.solve(classify_problem2), None)
+#+end_src
+
+#+RESUTS:
+: [[[1], 0], [[1, 1], 0]]
+: None
+
+Now that we have two pieces of data we can try to generalize.
+
+#+begin_src python :noweb yes :tangle second_approximation.py
+  print abstract(agent.memory.memory[0], agent.memory.memory[1])
+#+end_src
+
+At this point there is a possibility to rewrite the data that was used to create the generalization in terms of the generalization.  For now we'll hold off on doing that since 1) it adds the complexity of naming abstractions and 2) it's not yet clear how that would help inference.
 
