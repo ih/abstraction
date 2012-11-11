@@ -1309,9 +1309,9 @@ How can abstractions in memory help in solving inference problems?  Multiple lev
 ******* classify_problem3
 ******* completion_problem2
 ****** Solving the examples with abstraction
-The complexity of possible approaches being explored in "Storing abstractions" and "Solving inference problems with abstraction" seems like it could be a bit premature and risks creating the wrong generalizations.  This section is a second take to developing the algorithms for using abstraction by focusing on only adding enough complexity to solve the examples presented at the beginning of "More Inference Problems".  We start with the function for creating abstractions developed in "Creating abstractions" and ask what is the simplest system that can apply it to solve additional_binary_classification_problems and additional_binary_completion_problems.
+The complexity of possible approaches being explored in "Storing abstractions" and "Solving inference problems with abstraction" seems like it could be a bit premature and risks creating the wrong generalizations.  This section is a second take to developing the algorithms for using abstraction by focusing on only adding enough complexity to solve the classify_problem0, which we failed to solve with our first approach and eventually examples presented in the section "More Inference Problems".  We start with the function for creating abstractions developed in "Creating abstractions" and ask what is the simplest modification to the previous system that can enable it to solve classify_problem0.
 
-Let's start by incrementally processing data from pattern0 and pattern1 and trying to solve additional_binary_classification_problems at each step.
+Let's start by incrementally processing data from pattern0 and pattern1 and trying to solve classify_problem0 at each step.
 
 We initialize the agent and try to solve the inference problem with no prior data.
 
@@ -1319,12 +1319,12 @@ We initialize the agent and try to solve the inference problem with no prior dat
   from abstraction import *
   from utility import *
   <<binary_data>>
-  <<additional_binary_classification_problems>>
+  <<binary_data_classification_problems>>
   
   agent = Agent()
-  print 'classify_problem2 %s' % classify_problem2.partial_data
+  print 'classify_problem0 %s' % classify_problem0.partial_data
   
-  print_and_assert(agent.solve(classify_problem2), None)
+  print_and_assert(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESULTS:
@@ -1338,7 +1338,7 @@ One thing we have been doing is to print output as we go along then use this to 
       print function_output
       assert(function_output == true_value)
 #+end_src
-
+=======================================
 Next we add pattern0[0] and try to solve the problem again.
 
 #+begin_src python :noweb yes :tangle second_approximation.py
@@ -1347,7 +1347,7 @@ Next we add pattern0[0] and try to solve the problem again.
   <<binary_data_classification_problems>>
   print agent.memory.memory
 
-  print_and_assert(agent.solve(classify_problem2), None)
+  print_and_assert(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESULTS:
@@ -1360,7 +1360,7 @@ As expected there isn't enough data to solve the problem or generalize.  If we a
   agent.memory.add(pattern0[1])
   print agent.memory.memory
   
-  print_and_assert(agent.solve(classify_problem2), None)
+  print_and_assert(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESUTS:
@@ -1370,8 +1370,25 @@ As expected there isn't enough data to solve the problem or generalize.  If we a
 Now that we have two pieces of data we can try to generalize.
 
 #+begin_src python :noweb yes :tangle second_approximation.py
-  print abstract(agent.memory.memory[0], agent.memory.memory[1])
+  print_and_assert(abstract(agent.memory.memory[0], agent.memory.memory[1]), [[1, 'v0'], 0])
 #+end_src
+
+#+RESULTS:
+: [[1, 'v0'], 0]
 
 At this point there is a possibility to rewrite the data that was used to create the generalization in terms of the generalization.  For now we'll hold off on doing that since 1) it adds the complexity of naming abstractions and 2) it's not yet clear how that would help inference.
 
+Let's see how we need to modify the existing match function can be used to solve the inference problem in the way it was described at the introduction of "The process of abstraction".
+
+#+begin_src python :noweb yes :tangle second_approximation.py
+  print match(classify_problem0.partial_data, [[1, 'v0'], 0])
+#+end_src
+
+#+RESULTS:
+: None
+
+The reason match currently fails to find a binding is variables in the prior_data argument are treated like constants and so 'v0' in the abstraction fails to match the partial_data.
+
+How should we treat variables in the prior_data argument to match when the prior_data is an abstraction?  Should match try to return an environment that makes the resulting instances valid?  Do we have to worry about variables shared across different abstractions or naming conflicts?
+
+Let's try to re-examine the purpose of match to guide our design.  Originally the goal of match was to find a set of bindings that would make the prior_data an instance of the partial_data.  A natural generalization seems match should return an environment that instantiates any abstractions to the same value.
