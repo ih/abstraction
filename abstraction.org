@@ -985,8 +985,8 @@ Let's test the update match on a case where the algorithm can fail.
 
 For the most part the fixed match meets our expectation, but we also found a case where this algorithm can fail to find a valid binding if it exists.  Rather than special case a fix, we'll wait to resolve this issue when we begin to look at match between abstractions.
 
-****** Abstracting from concrete data and abstract data
-
+****** [SKIP] Abstracting from concrete data and abstract data
+****** [SKIP] Abstraction from abstraction and abstraction
 ***** Using abstractions
 We have a way of creating abstractions from data, but how is this used in the process of solving inference problems?  We'll extend how data is added to memory as well as how inference problems are solved by an agent by incorporating abstraction.
 
@@ -1391,4 +1391,13 @@ The reason match currently fails to find a binding is variables in the prior_dat
 
 How should we treat variables in the prior_data argument to match when the prior_data is an abstraction?  Should match try to return an environment that makes the resulting instances valid?  Do we have to worry about variables shared across different abstractions or naming conflicts?
 
-Let's try to re-examine the purpose of match to guide our design.  Originally the goal of match was to find a set of bindings that would make the prior_data an instance of the partial_data.  A natural generalization seems match should return an environment that instantiates any abstractions to the same value.
+Let's try to re-examine the purpose of match to guide our design.  Originally the goal of match was to find a set of bindings that would make the prior_data an instance of the partial_data.  A natural generalization seems like match should return an environment that instantiates any abstractions to the same value.  Some concrete examples are
+
+#+begin_src python :noweb yes
+  #variables do not overlap, a match exists
+  print_and_assert(match([[1,1,1,1], 'v0'], [[1, 'v1'], 0]), {'v0': [0], 'v1': [1,1,1]})
+  #one abstraction is more general than the other
+  print_and_assert(match(['v0'], [[1], 'v1'], {'v0': [[1], 'v1'], 'v1': 'v1'})
+#+end_src
+
+Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection of the sets described by the passed in argument.
