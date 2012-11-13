@@ -265,7 +265,7 @@ The interesting case is when the partial_data is a list.  Let's use the data in 
 
 Matching elements is kind of tricky because variables in the partial_data can match multiple elements of the corresponding prior_data so we need to keep track of the current position for both lists as we iterate through the partial_data.  
 
-#+name: match_list_case
+#+name: match_list_case_deprecated
 #+begin_src python :noweb yes 
   matches = []
   prior_data_position = 0
@@ -863,8 +863,8 @@ It will help to look at an example of how match would work when a variable can b
 
 Stepping through the code the first thing we realize is the constraint that the length of the prior_data needs to be greater than the length of the partial_data is no longer true.  Let's remove that condition
 
-#+name: structure_for_match
-#+begin_src python :noweb yes :tangle yes
+#+name: structure_for_match_deprecated
+#+begin_src python :noweb yes :tangle no
   def match(partial_data, prior_data):
       if is_variable(partial_data):
           <<match_variable_case>>
@@ -1400,4 +1400,27 @@ Let's try to re-examine the purpose of match to guide our design.  Originally th
   print_and_assert(match(['v0'], [[1], 'v1'], {'v0': [[1], 'v1'], 'v1': 'v1'})
 #+end_src
 
-Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection of the sets described by the passed in argument.
+Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection (or some subset) of the sets described by the passed in argument.  In this view abstraction is then finding a description of a set that contains the items being abstracted over.  Inference is the process of trying to specify  an element of a previously seen set based on some constraints.
+
+Let's start the generalized definition of match.  One difference is we will need to do some preprocessing to ensure unique variable names between the two data being processed.  The main difference is we will need to be "duplicate" how we process the partial_data for the second argument.  
+
+#+name: structure_for_match
+#+begin_src python :noweb yes :tangle yes
+  def match(data1, data2):
+      if is_variable(data1):
+          return {data1: data2}
+      elif is_variable(data2):
+          return {data2: data1}
+      elif is_symbol(data1) or is_symbol(data2):
+          if data1 == data2:
+              return {}
+          else:
+              return None
+      else:
+          assert(isinstance(data1, list) and isinstance(data2, list))
+          <<match_list_case>>
+#+end_src
+
+In the match list case we will need to be able to "fast-forward" the iteration through both data1 and data2 (as opposed to just data2 in the previous version of match).  One question is what do we do in the variable case now that the second argument can also have variables?
+
+
