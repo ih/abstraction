@@ -1277,10 +1277,13 @@ What are the abstractions we get from this data?
 
 #+name: 
 #+begin_src python :noweb yes :tangle pattern0.py
-<<binary_data>>
-<<additional_prior_data>>
-
-abstract
+  from abstraction import *
+  
+    <<binary_data>>
+  <<additional_prior_data>>
+  
+  abstract(pattern0[0], 
+  
 #+end_src  
 
 
@@ -1398,9 +1401,13 @@ Let's try to re-examine the purpose of match to guide our design.  Originally th
   print_and_assert(match([[1,1,1,1], 'v0'], [[1, 'v1'], 0]), {'v0': [0], 'v1': [1,1,1]})
   #one abstraction is more general than the other
   print_and_assert(match(['v0'], [[1], 'v1'], {'v0': [[1], 'v1'], 'v1': 'v1'})
+  #second abstraction "more general" than first
+  print_and_assert(match([2,2,'v1',1], ['v0', 1], {'v0': [[1], 'v1'], 'v1': 'v1'}))
+  #simpler case variables do not overlap, match exists
+  print_and_assert(match([1,'v0'], ['v1', 1]), {'v0': 1, 'v1': 1})
 #+end_src
 
-Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection (or some subset) of the sets described by the passed in argument.  In this view abstraction is then finding a description of a set that contains the items being abstracted over.  Inference is the process of trying to specify  an element of a previously seen set based on some constraints.
+Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection (or some subset) of the sets described by the passed in argument.  In this view abstraction is then finding a description of a set that contains the items being abstracted over.  Inference is the process of trying to specify an element of a previously seen set based on some constraints.
 
 Let's start the generalized definition of match.  One difference is we will need to do some preprocessing to ensure unique variable names between the two data being processed.  The main difference is we will need to be "duplicate" how we process the partial_data for the second argument.  
 
@@ -1421,6 +1428,31 @@ Let's start the generalized definition of match.  One difference is we will need
           <<match_list_case>>
 #+end_src
 
-In the match list case we will need to be able to "fast-forward" the iteration through both data1 and data2 (as opposed to just data2 in the previous version of match).  One question is what do we do in the variable case now that the second argument can also have variables?
+In the match list case we will need to be able to "fast-forward" the iteration through both data1 and data2 (as opposed to just data2 in the previous version of match) since there might be variables in data2.  
+
+#+name: match_list_case
+#+begin_src python :noweb yes
+  #using a dictionary b/c has reference passed into functions allowing changes to be permanent after
+  #exiting the function
+  state = {'matches': [], 'data1_position': 0, 'data2_position': 0}
+  #iterate until one of the data has been examined completely
+  while state['data1_position'] < len(data1) and state['data2_position'] < len(data2):
+      #in the case where you can match a variable to a sublist of the other data
+      if(is_variable(data1[state['data1_position']]) and state['data1_position'] < len(data1)-1
+         or
+         is_variable(data1[state['data2_position']]) and state['data2_position'] < len(data2)-1):
+      match_list_variable_case(state)
+  
+      else:
+          state['matches'].append(match(data1[state['data1_position']],
+                                        data2[state['data2_position']]))
+          state['data1_position'] += 1
+          state['data2_position'] += 1
+  if state['data1_position'] < len(data1) or state['data2_position'] < len(data2):
+      return None
+  <<match_list_case_combine_matches>>
+#+end_src
+
+
 
 
