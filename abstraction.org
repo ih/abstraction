@@ -1105,12 +1105,9 @@ We have one match so we can rewrite the new data as ['f', [1, 1, 0, 0, 0], [1]].
   
   g = ['f', ['v0'], [0]]
   h = ['f', [1, 'v1'], ['v2']]
-  test9 = match(g, pattern1_1)
-  print test9
-  assert(test9 is None)
-  test10 = match(h, pattern1_1)
-  print test10
-  assert(test10 == {'v1': [1, 0, 0, 0], 'v2': [1]})
+  
+  print_and_assert(match(g, pattern1_1), None)
+  print_and_assert(match(h, pattern1_1), {'v1': [1, 0, 0, 0], 'v2': [1]})
 #+end_src
 
 #+RESULTS:
