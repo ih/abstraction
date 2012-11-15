@@ -1450,6 +1450,33 @@ In the match list case we will need to be able to "fast-forward" the iteration t
   <<match_list_case_combine_matches>>
 #+end_src
 
-
+#+name: match_list_variable_case
+#+begin_src python :noweb yes :tangle yes
+  def match_list_variable_case(state):
+      #determine, which data is the variable case then match it to a subset of of the other data
+      data1_element = data1[state['data1_position']]
+      data2_element = data1[state['data2_position']]
+      if is_variable(data1_element) and is_variable(data2_element):
+          #unify the variables with a common name
+          new_variable = variable_generator.generate()
+          state['matches'].append({data1_element: new_variable, data2_element: new_variable})
+      elif is_variable(data1_element):
+          variable_data_position = data1_position
+          variable_data = data1
+          non_variable_data_position = data2_position
+          non_variable_data = data2
+      else:
+          variable_data_position = data2_position
+          variable_data = data2
+          non_variable_data_position = data1_position
+          non_variable_data = data1
+      #find the possible matching positions in nonvariable data
+      matching_positions = find_matching_positions(next_element, non_variable_data,
+                                                   variable_data, non_variable_data_position,
+                                                   variable_data_position)
+      #randomly choose a match if one exists
+      if len(matching_positions) > 0:
+  
+#+end_src
 
 
