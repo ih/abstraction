@@ -1431,52 +1431,55 @@ In the match list case we will need to be able to "fast-forward" the iteration t
 #+begin_src python :noweb yes
   #using a dictionary b/c has reference passed into functions allowing changes to be permanent after
   #exiting the function
-  state = {'matches': [], 'data1_position': 0, 'data2_position': 0}
+  matches = []
+  data1_position = 0
+  data2_position = 0
   #iterate until one of the data has been examined completely
-  while state['data1_position'] < len(data1) and state['data2_position'] < len(data2):
+  while data1_position < len(data1) and data2_position < len(data2):
       #in the case where you can match a variable to a sublist of the other data
-      if(is_variable(data1[state['data1_position']]) and state['data1_position'] < len(data1)-1
-         or
-         is_variable(data1[state['data2_position']]) and state['data2_position'] < len(data2)-1):
-      match_list_variable_case(state)
-  
+      #fast-forward the position in the other data
+      if is_variable(data1[data1_position]) and data1_position < len(data1)-1:
+          data2_position, matches = bind_variable(data1_position, data1,
+                                                  data2_position, data2,
+                                                  matches)
+      elif is_variable(data2[data2_position]) and data2_position < len(data2)-1:
+          data1_position, matches = bind_variable(data2_position, data2,
+                                                  data1_position, data1,
+                                                  matches)
       else:
-          state['matches'].append(match(data1[state['data1_position']],
-                                        data2[state['data2_position']]))
-          state['data1_position'] += 1
-          state['data2_position'] += 1
-  if state['data1_position'] < len(data1) or state['data2_position'] < len(data2):
+          matches.append(match(data1[data1_position],
+                                        data2[data2_position]))
+          data1_position += 1
+          data2_position += 1
+  if data1_position < len(data1) or data2_position < len(data2):
       return None
   <<match_list_case_combine_matches>>
 #+end_src
 
-#+name: match_list_variable_case
+#+name: bind_variable
 #+begin_src python :noweb yes :tangle yes
-  def match_list_variable_case(state):
-      #determine, which data is the variable case then match it to a subset of of the other data
-      data1_element = data1[state['data1_position']]
-      data2_element = data1[state['data2_position']]
-      if is_variable(data1_element) and is_variable(data2_element):
-          #unify the variables with a common name
-          new_variable = variable_generator.generate()
-          state['matches'].append({data1_element: new_variable, data2_element: new_variable})
-      elif is_variable(data1_element):
-          variable_data_position = data1_position
-          variable_data = data1
-          non_variable_data_position = data2_position
-          non_variable_data = data2
-      else:
-          variable_data_position = data2_position
-          variable_data = data2
-          non_variable_data_position = data1_position
-          non_variable_data = data1
+  def bind_variable(variable_position, variable_data, other_position, other_data, matches):
+      """
+      Function for matching the variable in one data to some subset of the other data
+      Fast forwards other_position and changes matches
+      """
+      variable = variable_data[variable_position]
+      element_after_variable = variable_data[variable_position+1]
       #find the possible matching positions in nonvariable data
-      matching_positions = find_matching_positions(next_element, non_variable_data,
+      matching_positions = find_matching_positions(element_after_variable, non_variable_data,
                                                    variable_data, non_variable_data_position,
                                                    variable_data_position)
       #randomly choose a match if one exists
       if len(matching_positions) > 0:
+          chosen_match_position = random.choice(matching_positions)
+          #if the element_after_variable matched against a variable in the other_data
   
+          #bind any variables in other_data to themselves
+  
+          #bind the variable to everything up to the chosen match position
+      else:
+          matches.append(None)
+      return other_position, matches
 #+end_src
 
 
