@@ -919,7 +919,7 @@ In order to find the possible matching positions we need to check two things as 
 2) There are at least as many non-variables after the current prior_data element as there are non-variables in the remaining partial_data.
 
 Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in the remaining partial_data then find the tail of the prior_data that contains that number of non-variables and only iterate until the beginning of the tail.
-#+name: find_matching_positions
+#+name: find_matching_positions_deprecated
 #+begin_src python :noweb yes :tangle yes
   def find_matching_positions(next_element, prior_data, partial_data,
                               prior_data_position, partial_data_position):
@@ -1463,6 +1463,9 @@ In the match list case we will need to be able to "fast-forward" the iteration t
       Function for matching the variable in one data to some subset of the other data
       Fast forwards other_position and changes matches
       """
+  
+      <<find_matching_positions>>
+  
       variable = variable_data[variable_position]
       element_after_variable = variable_data[variable_position+1]
       #find the possible matching positions in nonvariable data
@@ -1482,4 +1485,22 @@ In the match list case we will need to be able to "fast-forward" the iteration t
       return other_position, matches
 #+end_src
 
+Before find_matching_positions was a matter of searching through the non-variable data for elements that matched the element after the variable.  Finding match positions in this version can differ slightly because variables in the "non-variable" (other_data) can also be potential matches.  How should we treat variables in other_data?  Let's example the case of [2,2,'v1',1] and  ['v0', 1].  If 'v0' is the variable then we will try to find a match for 1 in [2,2,'v1',1].  When we encounter 'v1' is it a possible match?  If we did try and match it then the overall match would be None since the last 1 in [2,2,'v1',1] would not match to anything in ['v0', 1].  Can we use the number of non-variables in either data as a constraint?  The possible cases are: 
+1) number of non-variables in variable_data exceeds number of non-variables after the binding in other_data 
 
+or 
+
+2) number of non-variables in variable_data is less than number of non-variables after the binding
+
+We can further subdivide cases by looking at whether the remaining data has variables.
+
+1.1 if there are no variables in other_data after the binding then there cannot be a match in this case since there would be some non-variable in variable-data that does not match to anything
+
+1.2 if there are variables in other_data then one cannot use the same argument in 1.1 since a variable in other_data may bind to more than one non-variable in the remaining non-variable data.
+
+Rather than finish this analysis let us choose a simpler algorithm in favor of increasing the probability match will find a valid match if it exists.  Possible matching positions are either non-variable elements that match or variables.
+
+#+name: find_matching_positions
+#+begin_src python :noweb yes
+
+#+end_src
