@@ -1502,5 +1502,14 @@ Rather than finish this analysis let us choose a simpler algorithm in favor of i
 
 #+name: find_matching_positions
 #+begin_src python :noweb yes
-
+      def find_matching_positions():
+          element_after_variable = variable_data[variable_position+1]
+          possible_positions = []
+          for new_position, other_element in enumerate(other_data[other_position:]):
+              #this could be problematic since the match used here may have choices that
+              #are not made in the future match we are currently in
+              if match(element_after_variable, other_element) is not None:
+                  possible_positions.append(new_position)
+          return possible_positions
 #+end_src
+
