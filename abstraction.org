@@ -1442,10 +1442,12 @@ In the match list case we will need to be able to "fast-forward" the iteration t
           data2_position, matches = bind_variable(data1_position, data1,
                                                   data2_position, data2,
                                                   matches)
+          data1_positions += 1
       elif is_variable(data2[data2_position]) and data2_position < len(data2)-1:
           data1_position, matches = bind_variable(data2_position, data2,
                                                   data1_position, data1,
                                                   matches)
+          data2_position += 1
       else:
           matches.append(match(data1[data1_position],
                                         data2[data2_position]))
@@ -1468,18 +1470,19 @@ In the match list case we will need to be able to "fast-forward" the iteration t
   
       variable = variable_data[variable_position]
       element_after_variable = variable_data[variable_position+1]
-      #find the possible matching positions in nonvariable data
+      #find the possible matching positions in nonvariable data and possible bindings if
+      #the matching position corresponds to a variable
       matching_positions = find_matching_positions(element_after_variable, non_variable_data,
                                                    variable_data, non_variable_data_position,
                                                    variable_data_position)
       #randomly choose a match if one exists
       if len(matching_positions) > 0:
-          chosen_match_position = random.choice(matching_positions)
-          #if the element_after_variable matched against a variable in the other_data
-  
-          #bind any variables in other_data to themselves
-  
-          #bind the variable to everything up to the chosen match position
+          chosen_match_position = random.choice(matching_positions.keys())
+          #binding for elements right after what is bound to variable_position variable
+          matches.append(matching_positions[chosen_match_position])
+          #binding for variable_position variable
+          matches.append({variable: other_data[other_position:chosen_match_position-1]})
+          other_position = chosen_match_position+1
       else:
           matches.append(None)
       return other_position, matches
@@ -1498,18 +1501,19 @@ We can further subdivide cases by looking at whether the remaining data has vari
 
 1.2 if there are variables in other_data then one cannot use the same argument in 1.1 since a variable in other_data may bind to more than one non-variable in the remaining non-variable data.
 
-Rather than finish this analysis let us choose a simpler algorithm in favor of increasing the probability match will find a valid match if it exists.  Possible matching positions are either non-variable elements that match or variables.
+Rather than finish this analysis let us choose a simpler algorithm that may make "mistakes" in favor of increasing the probability match will find a valid match if it exists.  Possible matching positions are either non-variable elements that match or variables.
 
 #+name: find_matching_positions
 #+begin_src python :noweb yes
-      def find_matching_positions():
-          element_after_variable = variable_data[variable_position+1]
-          possible_positions = []
-          for new_position, other_element in enumerate(other_data[other_position:]):
-              #this could be problematic since the match used here may have choices that
-              #are not made in the future match we are currently in
-              if match(element_after_variable, other_element) is not None:
-                  possible_positions.append(new_position)
-          return possible_positions
+  def find_matching_positions():
+      element_after_variable = variable_data[variable_position+1]
+      possible_positions = {}
+      for new_position, other_element in enumerate(other_data[other_position:]):
+          #we record the matches in case other_element is a variable, if the corresponding
+          #position is chosen we can add the match to matches
+          possible_match = match(element_after_variable, other_element)
+          if possible_match is not None:
+              possible_positions[new_position] = possible_match
+      return possible_positions
 #+end_src
 
