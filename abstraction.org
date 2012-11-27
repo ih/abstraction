@@ -473,6 +473,8 @@ Applying match to a case where it should match and shouldn't match would like th
 
 #+begin_src python :noweb yes :tangle test_match.py
   from abstraction import *
+  import pdb
+  
   test1 =  match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
   print test1
   assert(test1 == {'v0': [0]})
@@ -920,7 +922,7 @@ In order to find the possible matching positions we need to check two things as 
 
 Just like the last version of match we can determine how much of prior_data we need to iterate through to guarantee 2) without having to check for each prior_data element.  We need only determine the number of non-variables in the remaining partial_data then find the tail of the prior_data that contains that number of non-variables and only iterate until the beginning of the tail.
 #+name: find_matching_positions_deprecated
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   def find_matching_positions(next_element, prior_data, partial_data,
                               prior_data_position, partial_data_position):
       def find_last_prior_position(number_non_variables):
@@ -1412,9 +1414,9 @@ Let's start the generalized definition of match.  One difference is we will need
 #+begin_src python :noweb yes :tangle yes
   def match(data1, data2):
       if is_variable(data1):
-          return {data1: data2}
+          return {data1: [data2]}
       elif is_variable(data2):
-          return {data2: data1}
+          return {data2: [data1]}
       elif is_symbol(data1) or is_symbol(data2):
           if data1 == data2:
               return {}
@@ -1442,12 +1444,22 @@ In the match list case we will need to be able to "fast-forward" the iteration t
           data2_position, matches = bind_variable(data1_position, data1,
                                                   data2_position, data2,
                                                   matches)
-          data1_positions += 1
+          data1_position += 2
+      elif is_variable(data1[data1_position]):
+          #the last element of data1 is a variable so bind it to the rest of data2
+          matches.append(match(data1[data1_position], data2))
+          data1_position += 1
+          data2_position = len(data2)
       elif is_variable(data2[data2_position]) and data2_position < len(data2)-1:
           data1_position, matches = bind_variable(data2_position, data2,
                                                   data1_position, data1,
                                                   matches)
+          data2_position += 2
+      elif is_variable(data2[data2_position]):
+          #the last element of data2 is a variable so bind it to the rest of data1
+          matches.append(match(data1, data2[data2_position]))
           data2_position += 1
+          data1_position = len(data1)
       else:
           matches.append(match(data1[data1_position],
                                         data2[data2_position]))
@@ -1472,16 +1484,14 @@ In the match list case we will need to be able to "fast-forward" the iteration t
       element_after_variable = variable_data[variable_position+1]
       #find the possible matching positions in nonvariable data and possible bindings if
       #the matching position corresponds to a variable
-      matching_positions = find_matching_positions(element_after_variable, non_variable_data,
-                                                   variable_data, non_variable_data_position,
-                                                   variable_data_position)
+      matching_positions = find_matching_positions()
       #randomly choose a match if one exists
       if len(matching_positions) > 0:
           chosen_match_position = random.choice(matching_positions.keys())
           #binding for elements right after what is bound to variable_position variable
           matches.append(matching_positions[chosen_match_position])
           #binding for variable_position variable
-          matches.append({variable: other_data[other_position:chosen_match_position-1]})
+          matches.append({variable: other_data[other_position:chosen_match_position]})
           other_position = chosen_match_position+1
       else:
           matches.append(None)
