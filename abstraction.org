@@ -473,6 +473,7 @@ Applying match to a case where it should match and shouldn't match would like th
 
 #+begin_src python :noweb yes :tangle test_match.py
   from abstraction import *
+  from utility import *
   import pdb
   
   test1 =  match([[1, 1, 1, 1], 'v0'], [[1, 1, 1, 1], 0])
@@ -1383,7 +1384,7 @@ At this point there is a possibility to rewrite the data that was used to create
 Let's see how we need to modify the existing match function can be used to solve the inference problem in the way it was described at the introduction of "The process of abstraction".
 
 #+begin_src python :noweb yes :tangle second_approximation.py
-  print match(classify_problem0.partial_data, [[1, 'v0'], 0])
+  print match(classify_problem0.partial_data, [[1, 'v1'], 0])
 #+end_src
 
 #+RESULTS:
@@ -1406,6 +1407,8 @@ Let's try to re-examine the purpose of match to guide our design.  Originally th
   print_and_assert(match([1,'v0'], ['v1', 1]), {'v0': 1, 'v1': 1})
 #+end_src
 
+#+RESULTS:
+
 Another way to think of the generalization of match is as a way to make the abstractions more concrete or to add structure to each argument based on the structure of the other argument.  If we view abstractions as descriptions of sets, the new match tries to find the intersection (or some subset) of the sets described by the passed in argument.  In this view abstraction is then finding a description of a set that contains the items being abstracted over.  Inference is the process of trying to specify an element of a previously seen set based on some constraints.
 
 Let's start the generalized definition of match.  One difference is we will need to do some preprocessing to ensure unique variable names between the two data being processed.  The main difference is we will need to be "duplicate" how we process the partial_data for the second argument.  
@@ -1414,9 +1417,9 @@ Let's start the generalized definition of match.  One difference is we will need
 #+begin_src python :noweb yes :tangle yes
   def match(data1, data2):
       if is_variable(data1):
-          return {data1: [data2]}
+          return {data1: data2}
       elif is_variable(data2):
-          return {data2: [data1]}
+          return {data2: data1}
       elif is_symbol(data1) or is_symbol(data2):
           if data1 == data2:
               return {}
@@ -1447,7 +1450,7 @@ In the match list case we will need to be able to "fast-forward" the iteration t
           data1_position += 2
       elif is_variable(data1[data1_position]):
           #the last element of data1 is a variable so bind it to the rest of data2
-          matches.append(match(data1[data1_position], data2))
+          matches.append(match(data1[data1_position], data2[data2_position:]))
           data1_position += 1
           data2_position = len(data2)
       elif is_variable(data2[data2_position]) and data2_position < len(data2)-1:
@@ -1457,7 +1460,7 @@ In the match list case we will need to be able to "fast-forward" the iteration t
           data2_position += 2
       elif is_variable(data2[data2_position]):
           #the last element of data2 is a variable so bind it to the rest of data1
-          matches.append(match(data1, data2[data2_position]))
+          matches.append(match(data1[data1_position:], data2[data2_position]))
           data2_position += 1
           data1_position = len(data1)
       else:
@@ -1468,6 +1471,7 @@ In the match list case we will need to be able to "fast-forward" the iteration t
   if data1_position < len(data1) or data2_position < len(data2):
       return None
   <<match_list_case_combine_matches>>
+  
 #+end_src
 
 #+name: bind_variable
