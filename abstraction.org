@@ -33,14 +33,15 @@ Even though it's not hard to think of cases where this algorithm won't work, we 
 
 **** TODO Storing data
 The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now, but use a layer of abstraction to manipulate it.
-#+name: memory
-#+begin_src python :tangle yes
+#+name: memory_deprecated
+#+begin_src python :noweb yes :tangle yes
   class Memory:
       memory = []
       def add(self, data):
           self.memory.append(data)
-  
+          
 #+end_src
+
 Now we test the function using the binary data from earlier
 #+name: add_pattern0_to_memory
 #+begin_src python :noweb yes
@@ -610,7 +611,7 @@ Our next attempt to solve inference problems will utilize the power of abstracti
 4) work out details for matching partial data to possibily abstract data in the memory
 5) work out details of how matching is used in the larger problem solving routine
 
-
+   
 **** More Inference Problems
 The previous set of problems had one example problem that could not be solved by matching directly to prior data.  We'll give a few more examples here to both guide development and test the abstraction approach.
 
@@ -1311,7 +1312,8 @@ How can abstractions in memory help in solving inference problems?  Multiple lev
 ******* classify_problem2
 ******* classify_problem3
 ******* completion_problem2
-****** Solving the examples with abstraction
+****** Solving classify_problem0 with abstraction
+******* Manual solution
 The complexity of possible approaches being explored in "Storing abstractions" and "Solving inference problems with abstraction" seems like it could be a bit premature and risks creating the wrong generalizations.  This section is a second take to developing the algorithms for using abstraction by focusing on only adding enough complexity to solve the classify_problem0, which we failed to solve with our first approach and eventually examples presented in the section "More Inference Problems".  We start with the function for creating abstractions developed in "Creating abstractions" and ask what is the simplest modification to the previous system that can enable it to solve classify_problem0.
 
 Let's start by incrementally processing data from pattern0 and pattern1 and trying to solve classify_problem0 at each step.
@@ -1384,7 +1386,7 @@ At this point there is a possibility to rewrite the data that was used to create
 Let's see how we need to modify the existing match function can be used to solve the inference problem in the way it was described at the introduction of "The process of abstraction".
 
 #+begin_src python :noweb yes :tangle second_approximation.py
-  print match(classify_problem0.partial_data, [[1, 'v1'], 0])
+  print match(classify_problem0.partial_data, [[1, 'v0'], 0])
 #+end_src
 
 #+RESULTS:
@@ -1529,5 +1531,32 @@ Rather than finish this analysis let us choose a simpler algorithm that may make
           if possible_match is not None:
               possible_positions[new_position] = possible_match
       return possible_positions
+#+end_src
+
+Now that we've rewritten match let's see how it does on the inference problems the first approximation couldn't solve.
+
+The first up is classify_problem0 with the abstraction we got from the first two examples of the pattern0.
+#+begin_src python :noweb yes :tangle second_approximation.py
+  print match(classify_problem0.partial_data, [[1, 'v1'], 0])
+#+end_src
+
+#+RESULTS:
+: {'v0': [0], 'v1': [1, 1, 1]}
+
+******* Adding abstraction to the agent functions
+In the last section we manually performed the abstraction step as we added data to the agent.  Let's adjust the add function for memory to do this automatically so it's easier to test the new approach for solving inference problems.
+
+In addition to storing new data the agent gets we'll also want to create and store abstractions; we'll need to make a few design decisions for the new implementation.  For this version when we get new data we'll only create abstractions with "non-abstract" data.  The motivation is to  more easily identify the need for more complicated abstraction by trying to solve a problem where abstracting between concrete and abstract data is needed.  To help accomplish this we'll store abstractions separately from the non-abstract data and perhaps as we introduce higher order abstractions each level of abstraction will be kept separately although we'll have to see what benefit there might be to this strategy [DD].
+
+#+name: memory
+#+begin_src python :noweb yes
+  class Memory:
+      concrete_data = []
+      abstract_data = []
+  
+      def add(self, new_data):
+          self.concrete_data.appned(new_data)
+          for prior_data in concrete_data:
+              abstract_data.append(abstract(prior_data, new_data))
 #+end_src
 
