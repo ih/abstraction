@@ -34,7 +34,7 @@ Even though it's not hard to think of cases where this algorithm won't work, we 
 **** TODO Storing data
 The first part of the algorithm is to store data.  We'll use a list as the data structure to keep things simple for now, but use a layer of abstraction to manipulate it.
 #+name: memory_deprecated
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   class Memory:
       memory = []
       def add(self, data):
@@ -552,7 +552,7 @@ The original first/naive approach for solving inference problems was to iterate 
 
 In order to solve an inference problem, we'll first extract the partial_data then match it against everything in memory.  To keep things simple we'll return a random binding [DD] or None if no solution was found.
 
-#+name: agent_solve
+#+name: agent_solve_deprecated
 #+begin_src python :noweb yes
   solutions = [match(inference_problem.partial_data, prior_data)
                for prior_data in self.memory.memory]
@@ -1549,14 +1549,52 @@ In the last section we manually performed the abstraction step as we added data 
 In addition to storing new data the agent gets we'll also want to create and store abstractions; we'll need to make a few design decisions for the new implementation.  For this version when we get new data we'll only create abstractions with "non-abstract" data.  The motivation is to  more easily identify the need for more complicated abstraction by trying to solve a problem where abstracting between concrete and abstract data is needed.  To help accomplish this we'll store abstractions separately from the non-abstract data and perhaps as we introduce higher order abstractions each level of abstraction will be kept separately although we'll have to see what benefit there might be to this strategy [DD].
 
 #+name: memory
-#+begin_src python :noweb yes
-  class Memory:
-      concrete_data = []
-      abstract_data = []
+#+begin_src python :noweb yes :tangle yes
+    class Memory:
+        def __init__(self):
+            self.concrete_data = []
+            self.abstract_data = []
+    
+        def add(self, new_data):
+            for prior_data in self.concrete_data:
+                self.abstract_data.append(abstract(prior_data, new_data))
+            self.concrete_data.append(new_data)
+            
+    
+        def dump(self):
+            return self.concrete_data+self.abstract_data
+    
+#+end_src
+
+Let's test out the new structure for memory by adding data.
+
+#+begin_src python :noweb yes :tangle test_memory.py
+  from abstraction import *
+  from utility import *
   
-      def add(self, new_data):
-          self.concrete_data.appned(new_data)
-          for prior_data in concrete_data:
-              abstract_data.append(abstract(prior_data, new_data))
+  <<binary_data>>
+  
+  agent = Agent()
+  agent.memory.add(pattern0[0])
+  print_and_assert(agent.memory.dump(), [pattern0[0]])
+#+end_src
+
+#+name: agent_solve
+#+begin_src python :noweb yes
+  solutions = [match(inference_problem.partial_data, prior_data)
+                 for prior_data in self.memory.concrete_data]
+  
+  solutions = [solution for solution in solutions if solution != None]
+  
+  if solutions == []:
+      solutions = [match(inference_problem.partial_data, prior_data)
+                   for prior_data in self.memory.abstract_data]
+  
+      solutions = [solution for solution in solutions if solution != None]
+  
+  if solutions == []:
+      return None
+  else:
+      return random.choice(solutions)
 #+end_src
 
