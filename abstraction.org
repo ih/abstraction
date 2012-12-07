@@ -99,7 +99,7 @@ It's also worth noting that an inference problem is essentially the same thing a
 ****** Binary Data Inference Problems
 ******* Classification
 One example of an inference problem is classification of binary data.  Suppose we have some data from either pattern0 or pattern1 above as shown earlier and we want to infer the pattern it came from, we can create a problem like so
-#+name: binary_data_classification_problems
+#+name: binary_data_classification_problems_deprecated
 #+begin_src python :results output :noweb yes :tangle no
 
   classify_problem0 = InferenceProblem(['v0'],[[1,1,1,1], 'v0'])  
@@ -403,8 +403,8 @@ The non-list cases for match are fairly straight-forward.
 #+end_src
 
 We need to define a few helper functions in order to run match.  For the type check of whether something is a variable we'll assume for now that variables come in the form 'v' combined with a number e.g. 'v0', 'v142', 'v99'
-#+name: is_variable
-#+begin_src python :noweb yes :tangle yes
+#+name: is_variable_deprecated
+#+begin_src python :noweb yes :tangle no
   def is_variable(thing):
       return isinstance(thing, str) and thing[0] == 'v' \
         and thing[1:].isdigit()
@@ -1606,3 +1606,62 @@ Now that we've changed the way data is stored in memory we must also adjust how 
       return random.choice(solutions)
 #+end_src
 
+Let's test this new agent code by trying to solve some inference problems.
+
+******** Solving classify_problem0
+
+Let's redo the manual steps from last time and verify we get the same results, we can reuse most of second_approximation.py, but now solve should be able to find a solution after getting pattern0[0] and pattern0[1] so we don't need to manually match partial data to [[1,'v0'], 0].
+
+
+#+begin_src python :noweb yes :results output :tangle second_approximation2.py
+  from abstraction import *
+  from utility import *
+  
+  <<binary_data>>
+  <<binary_data_classification_problems>>
+  
+  agent = Agent()
+  print 'classify_problem0 %s' % classify_problem0.partial_data
+  print_and_assert(agent.solve(classify_problem0), None)
+  agent.memory.add(pattern0[0])
+  print 'agent memory %s' % agent.memory.dump()
+  print_and_assert(agent.solve(classify_problem0), None)
+  agent.memory.add(pattern0[1])
+  print 'agent memory %s' % agent.memory.dump()
+  print agent.solve(classify_problem0)
+#+end_src
+
+#+RESULTS:
+: classify_problem0 [[1, 1, 1, 1], 'x0']
+: None
+: agent memory [[[1], 0]]
+: None
+: agent memory [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]]
+: {'v0': [1, 1, 1], 'x0': [0]}
+
+While the agent came up with the correct solution in this case, we should address an issue related to naming of variables.  The problem is in the inference problem 'v0' was the name of the variable we're trying to solve for while 'v0' was also the name of the variable in our abstraction learned from data.  Perhaps the simplest solution for now would be to change the variable name/symbol in the inference problem [DD].  This will make it easier to determine what the solution is when looking at the bindings returned by match since it distinguishes the inference problem variables from the abstraction variables.  In the future we might think about how to maintain separate environments in match and returning two sets of bindings.
+
+#+name: binary_data_classification_problems
+#+begin_src python :noweb yes
+  classify_problem0 = InferenceProblem(['x0'],[[1,1,1,1], 'x0'])  
+  classify_problem1 = InferenceProblem(['x0'], [[1,1,1,0,0,0], 'x0'])
+#+end_src
+
+We'll also need to adjust our way of checking whether something is a variable
+
+#+name: is_variable
+#+begin_src python :noweb yes :tangle yes
+  def is_variable(thing):
+      return isinstance(thing, str) and (thing[0] == 'v' or thing[0] == 'x') \
+        and thing[1:].isdigit()
+#+end_src
+
+We can see the results in the evaluation of second_approximation2.py above.  
+
+******** Solving classify_problem1
+Let's continue to check how our new use of abstraction by solving classify_problem1.  So far we've added pattern0[0] and pattern0[1] to memory.  Let's try to 
+
+#+name: 
+#+begin_src python :noweb yes :tangle second_approximation2.py
+
+#+end_src
