@@ -1661,7 +1661,54 @@ We can see the results in the evaluation of second_approximation2.py above.
 ******** Solving classify_problem1
 Let's continue to check how our new use of abstraction by solving classify_problem1.  So far we've added pattern0[0] and pattern0[1] to memory.  Let's try to 
 
-#+name: 
 #+begin_src python :noweb yes :tangle second_approximation2.py
-
+  print 'classify_problem1 %s' % classify_problem1.partial_data
+  print agent.solve(classify_problem1)
 #+end_src
+
+#+RESULTS:
+: agent memory [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]]
+: {'v0': [1, 1, 1], 'x0': [0]}
+: classify_problem1 [[1, 1, 1, 0, 0, 0], 'x0']
+: {'v0': [1, 1, 0, 0, 0], 'x0': [0]}
+
+This example brings up the issue of how we deal with error.  Here we have an abstraction that produces an incorrect inference, how should the agent adjust once this is realized?  How should the agent receive feedback about the error?  One option is to not do anything explicit in changing the inference algorithm, but just add the correctly completed data from the inference problem to memory [DD].  This will mean the next time the problem is encountered it will be answered correctly.  Other possibilities for what to do when an error occurs may arise as the algorithm for selecting, which abstractions to use when solving an inference problem become more sophisticated.
+
+#+begin_src python :noweb yes :tangle no
+  agent.memory.add([[1, 1, 1, 0, 0, 0], 1])
+  print 'agent memory %s' % agent.memory.dump()
+  print agent.solve(classify_problem1)
+#+end_src
+
+#+RESULTS:
+: agent memory [[[1], 0], [[1, 1], 0], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']]
+: {'x0': [1]}
+
+Let's backtrack for a second and see if we can solve classify_problem1 when we have more prior data for pattern1.
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  agent.memory.add(pattern1[0])
+  print 'agent memory %s' % agent.memory.dump()
+#+end_src
+
+#+RESULTS:
+: agent memory [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']]
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  agent.memory.add(pattern1[1])
+  print 'agent memory %s' % agent.memory.dump()
+#+end_src
+
+#+RESULTS:
+: agent memory [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]]
+
+Now we have an abstraction that can be used to solve classify_problem1, namely [[1, 1, 'v9', 0, 0, 'v10'], 1].
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print match(classify_problem1.partial_data, [[1, 1, 'v9', 0, 0, 'v10'], 1])
+#+end_src
+
+#+RESULTS:
+: {'v9': [], 'v10': [0, 0], 'x0': [1]}
+
+Even though a useful abstraction now exists in memory the current algorithm may not use it when solving the inference problem.  We need a more sophisticated way of choosing between abstractions.
