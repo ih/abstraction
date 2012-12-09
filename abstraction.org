@@ -617,8 +617,8 @@ The previous set of problems had one example problem that could not be solved by
 
 #+name: additional_binary_classification_problems
 #+begin_src python :noweb yes
-  classify_problem2 = InferenceProblem(['v0'], [[1,1,1,1,1,1,1,1,1,1,1,1,1], 'v0'])
-  classify_problem3 = InferenceProblem(['v0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'v0'])
+  classify_problem2 = InferenceProblem(['x0'], [[1,1,1,1,1,1,1,1,1,1,1,1,1], 'x0'])
+  classify_problem3 = InferenceProblem(['x0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
   
 #+end_src
 
@@ -1524,7 +1524,7 @@ Rather than finish this analysis let us choose a simpler algorithm that may make
   def find_matching_positions():
       element_after_variable = variable_data[variable_position+1]
       possible_positions = {}
-      for new_position, other_element in enumerate(other_data[other_position:]):
+      for new_position, other_element in enumerate(other_data[other_position:], other_position):
           #we record the matches in case other_element is a variable, if the corresponding
           #position is chosen we can add the match to matches
           possible_match = match(element_after_variable, other_element)
@@ -1614,21 +1614,22 @@ Let's redo the manual steps from last time and verify we get the same results, w
 
 
 #+begin_src python :noweb yes :results output :tangle second_approximation2.py
-  from abstraction import *
-  from utility import *
-  
-  <<binary_data>>
-  <<binary_data_classification_problems>>
-  
-  agent = Agent()
-  print 'classify_problem0 %s' % classify_problem0.partial_data
-  print_and_assert(agent.solve(classify_problem0), None)
-  agent.memory.add(pattern0[0])
-  print 'agent memory %s' % agent.memory.dump()
-  print_and_assert(agent.solve(classify_problem0), None)
-  agent.memory.add(pattern0[1])
-  print 'agent memory %s' % agent.memory.dump()
-  print agent.solve(classify_problem0)
+    from abstraction import *
+    from utility import *
+    
+    <<binary_data>>
+    <<binary_data_classification_problems>>
+    <<additional_binary_classification_problems>>
+    
+    agent = Agent()
+    print 'classify_problem0 %s' % classify_problem0.partial_data
+    print_and_assert(agent.solve(classify_problem0), None)
+    agent.memory.add(pattern0[0])
+    print 'agent memory %s' % agent.memory.dump()
+    print_and_assert(agent.solve(classify_problem0), None)
+    agent.memory.add(pattern0[1])
+    print 'agent memory %s' % agent.memory.dump()
+    print agent.solve(classify_problem0)
 #+end_src
 
 #+RESULTS:
@@ -1658,12 +1659,12 @@ We'll also need to adjust our way of checking whether something is a variable
 
 We can see the results in the evaluation of second_approximation2.py above.  
 
-******** Solving classify_problem1
-Let's continue to check how our new use of abstraction by solving classify_problem1.  So far we've added pattern0[0] and pattern0[1] to memory.  Let's try to 
+******** Solving classify_problem3
+Let's continue to check how our new use of abstraction by solving classify_problem3.  So far we've added pattern0[0] and pattern0[1] to memory.  Let's try to 
 
 #+begin_src python :noweb yes :tangle second_approximation2.py
-  print 'classify_problem1 %s' % classify_problem1.partial_data
-  print agent.solve(classify_problem1)
+  print 'classify_problem1 %s' % classify_problem3.partial_data
+  print agent.solve(classify_problem3)
 #+end_src
 
 #+RESULTS:
@@ -1677,7 +1678,7 @@ This example brings up the issue of how we deal with error.  Here we have an abs
 #+begin_src python :noweb yes :tangle no
   agent.memory.add([[1, 1, 1, 0, 0, 0], 1])
   print 'agent memory %s' % agent.memory.dump()
-  print agent.solve(classify_problem1)
+  print agent.solve(classify_problem3)
 #+end_src
 
 #+RESULTS:
@@ -1694,6 +1695,7 @@ Let's backtrack for a second and see if we can solve classify_problem1 when we h
 #+RESULTS:
 : agent memory [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']]
 
+
 #+begin_src python :noweb yes :tangle second_approximation2.py
   agent.memory.add(pattern1[1])
   print 'agent memory %s' % agent.memory.dump()
@@ -1705,10 +1707,19 @@ Let's backtrack for a second and see if we can solve classify_problem1 when we h
 Now we have an abstraction that can be used to solve classify_problem1, namely [[1, 1, 'v9', 0, 0, 'v10'], 1].
 
 #+begin_src python :noweb yes :tangle second_approximation2.py
-  print match(classify_problem1.partial_data, [[1, 1, 'v9', 0, 0, 'v10'], 1])
+  print match(classify_problem3.partial_data, [[1, 1, 'v9', 0, 0, 'v10'], 1])
 #+end_src
 
-#+RESULTS:
-: {'v9': [], 'v10': [0, 0], 'x0': [1]}
+Unfortunately this is a case where our simplistic match of variables can err (e.g. v9 might try to bind to [1], [1,0], [1,0,0], or [1,0,0,0], but in the case it finds the correct binding we get
 
-Even though a useful abstraction now exists in memory the current algorithm may not use it when solving the inference problem.  We need a more sophisticated way of choosing between abstractions.
+#+RESULTS:
+: {'v9': [1], 'v10': [0], 'x0': [1]}
+
+
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+
+  print agent.solve(classify_problem3)
+#+end_src
+
+We need a more sophisticated way of choosing between abstractions.
