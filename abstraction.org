@@ -1659,6 +1659,18 @@ We'll also need to adjust our way of checking whether something is a variable
 
 We can see the results in the evaluation of second_approximation2.py above.  
 
+******** Solving classify_problem1
+classify_problem1 does not require induction to solve after seeing pattern1[1]
+******** Solving classify_problem2
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print 'classify_problem2 %s' % classify_problem2.partial_data
+  print agent.solve(classify_problem2)
+#+end_src
+
+#+RESULTS:
+: classify_problem2 [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'x0']
+: {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'x0': [0]}
+
 ******** Solving classify_problem3
 Let's continue to check how our new use of abstraction by solving classify_problem3.  So far we've added pattern0[0] and pattern0[1] to memory.  Let's try to 
 
@@ -1703,7 +1715,7 @@ Let's backtrack for a second and see if we can solve classify_problem1 when we h
 #+RESULTS:
 : agent memory [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]]
 
-Now we have an abstraction that can be used to solve classify_problem1, namely [[1, 1, 'v9', 0, 0, 'v10'], 1].
+Now we have an abstraction that can be used to solve classify_problem3, namely [[1, 1, 'v9', 0, 0, 'v10'], 1].
 
 #+begin_src python :noweb yes :tangle second_approximation2.py
   print match(classify_problem3.partial_data, [[1, 1, 'v9', 0, 0, 'v10'], 1])
