@@ -541,7 +541,7 @@ Now that we have one version of the match function (return single binding, no sc
 The original first/naive approach for solving inference problems was to iterate through the prior data and try to find any matches with the partial data.  We'll now formalize this process.  Let's define a class to organize the problem solving functions and data structures.  We'll call it an agent.  It has a memory and a function for taking in inference problems and returning a solution.
 
 #+name: agent
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   class Agent:
       def __init__(self):
           self.memory = Memory()
@@ -1112,8 +1112,8 @@ We have one match so we can rewrite the new data as ['f', [1, 1, 0, 0, 0], [1]].
   g = ['f', ['v0'], [0]]
   h = ['f', [1, 'v1'], ['v2']]
   
-  print_and_assert(match(g, pattern1_1), None)
-  print_and_assert(match(h, pattern1_1), {'v1': [1, 0, 0, 0], 'v2': [1]})
+  print_and_assert_equal(match(g, pattern1_1), None)
+  print_and_assert_equal(match(h, pattern1_1), {'v1': [1, 0, 0, 0], 'v2': [1]})
 #+end_src
 
 #+RESULTS:
@@ -1331,7 +1331,7 @@ We initialize the agent and try to solve the inference problem with no prior dat
   agent = Agent()
   print 'classify_problem0 %s' % classify_problem0.partial_data
   
-  print_and_assert(agent.solve(classify_problem0), None)
+  print_and_assert_equal(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESULTS:
@@ -1339,15 +1339,17 @@ We initialize the agent and try to solve the inference problem with no prior dat
 =======Literate Programming aside======
 One thing we have been doing is to print output as we go along then use this to create test cases, which help verify that any future changes to the code are correct.  One way to streamline this is to have a function that both prints and asserts.  We'll start to build up generic utility functions in a file utility.py
 
-#+name: print_and_assert
+#+name: print_and_assert_equal
 #+begin_src python :noweb yes :tangle utility.py
   def print_and_assert(expression_text, operator, expression_output, assert_value):
-      print '%s => expression_output'
+      print '%s => %s' % (expression_text, expression_output)d
       assert(operator(expression_output, assert_value))
   
+  def equal(a,b):
+      return a == b
+
   def print_and_assert_equal(function_output, true_value):
-      print function_output
-      assert(function_output == true_value)
+      print_and_assert('equality check', equal, function_output, true_value)
 #+end_src
 =======================================
 Next we add pattern0[0] and try to solve the problem again.
@@ -1358,7 +1360,7 @@ Next we add pattern0[0] and try to solve the problem again.
   <<binary_data_classification_problems>>
   print agent.memory.memory
 
-  print_and_assert(agent.solve(classify_problem0), None)
+  print_and_assert_equal(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESULTS:
@@ -1371,7 +1373,7 @@ As expected there isn't enough data to solve the problem or generalize.  If we a
   agent.memory.add(pattern0[1])
   print agent.memory.memory
   
-  print_and_assert(agent.solve(classify_problem0), None)
+  print_and_assert_equal(agent.solve(classify_problem0), None)
 #+end_src
 
 #+RESUTS:
@@ -1381,7 +1383,7 @@ As expected there isn't enough data to solve the problem or generalize.  If we a
 Now that we have two pieces of data we can try to generalize.
 
 #+begin_src python :noweb yes :tangle second_approximation.py
-  print_and_assert(abstract(agent.memory.memory[0], agent.memory.memory[1]), [[1, 'v0'], 0])
+  print_and_assert_equal(abstract(agent.memory.memory[0], agent.memory.memory[1]), [[1, 'v0'], 0])
 #+end_src
 
 #+RESULTS:
@@ -1406,13 +1408,13 @@ Let's try to re-examine the purpose of match to guide our design.  Originally th
 
 #+begin_src python :noweb yes
   #variables do not overlap, a match exists
-  print_and_assert(match([[1,1,1,1], 'v0'], [[1, 'v1'], 0]), {'v0': [0], 'v1': [1,1,1]})
+  print_and_assert_equal(match([[1,1,1,1], 'v0'], [[1, 'v1'], 0]), {'v0': [0], 'v1': [1,1,1]})
   #one abstraction is more general than the other
-  print_and_assert(match(['v0'], [[1], 'v1'], {'v0': [[1], 'v1'], 'v1': 'v1'})
+  print_and_assert_equal(match(['v0'], [[1], 'v1'], {'v0': [[1], 'v1'], 'v1': 'v1'})
   #second abstraction "more general" than first
-  print_and_assert(match([2,2,'v1',1], ['v0', 1], {'v0': [[1], 'v1'], 'v1': 'v1'}))
+  print_and_assert_equal(match([2,2,'v1',1], ['v0', 1], {'v0': [[1], 'v1'], 'v1': 'v1'}))
   #simpler case variables do not overlap, match exists
-  print_and_assert(match([1,'v0'], ['v1', 1]), {'v0': 1, 'v1': 1})
+  print_and_assert_equal(match([1,'v0'], ['v1', 1]), {'v0': 1, 'v1': 1})
 #+end_src
 
 #+RESULTS:
@@ -1582,13 +1584,13 @@ Let's test out the new structure for memory by adding data.
   
   agent = Agent()
   agent.memory.add(pattern0[0])
-  print_and_assert(agent.memory.dump(), [pattern0[0]])
+  print_and_assert_equal(agent.memory.dump(), [pattern0[0]])
   agent.memory.add(pattern0[1])
-  print_and_assert(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]])
+  print_and_assert_equal(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]])
   agent.memory.add(pattern1[0])
-  print_and_assert(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']])
+  print_and_assert_equal(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']])
   agent.memory.add(pattern1[1])
-  print_and_assert(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]])
+  print_and_assert_equal(agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]])
 #+end_src
 
 Now that we've changed the way data is stored in memory we must also adjust how the agent solves inference problems.  The basic algorithm will be to try to match the problem to concrete data and if there is no match from that then try to match it to an abstraction [DD].
@@ -1630,10 +1632,10 @@ Let's redo the manual steps from last time and verify we get the same results, w
   
   agent = Agent()
   print 'classify_problem0 %s' % classify_problem0.partial_data
-  print_and_assert(agent.solve(classify_problem0), None)
+  print_and_assert_equal(agent.solve(classify_problem0), None)
   agent.memory.add(pattern0[0])
   print 'agent memory %s' % agent.memory.dump()
-  print_and_assert(agent.solve(classify_problem0), None)
+  print_and_assert_equal(agent.solve(classify_problem0), None)
   agent.memory.add(pattern0[1])
   print 'agent memory %s' % agent.memory.dump()
   print agent.solve(classify_problem0)
@@ -1754,3 +1756,18 @@ We need a more sophisticated way of choosing between abstractions.
 #+end_src
 
 #+RESULTS:
+
+******** An aside on time-based execution
+One way to approach the problem of not exhaustively searching all possibilities when performing various operations like match is to run the function for a set amount of time and either return the first answer or the best.
+
+#+name: time_agent
+#+begin_src python :noweb yes :tangle yes
+  from time import time
+  class Agent:
+      def __init__(self):
+          self.memory = Memory()
+  
+      def solve(self, inference_problem, duration=None):
+          <<agent_solve>>
+  
+#+end_src
