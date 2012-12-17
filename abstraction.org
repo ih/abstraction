@@ -1767,7 +1767,15 @@ One way to approach the problem of not exhaustively searching all possibilities 
       def __init__(self):
           self.memory = Memory()
   
-      def solve(self, inference_problem, duration=None):
+      def solve(self, inference_problem):
           <<agent_solve>>
   
+      def solve_within(self, inference_problem, duration=None):
+          start = time()
+          while time()-start < duration:
+              solution = self.solve(inference_problem)
+              if solution is not None:
+                  break
+          return solution
 #+end_src
+
