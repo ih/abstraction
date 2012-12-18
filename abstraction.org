@@ -956,7 +956,7 @@ Just like the last version of match we can determine how much of prior_data we n
 #+end_src
 
 Let's test the update match on a case where the algorithm can fail.
-
+#+name: match_fail
 #+begin_src python :noweb yes :tangle test_match.py
   for i in range(10):
       #a case where this algorithm can fail to find the existing valid binding
@@ -1779,3 +1779,22 @@ One way to approach the problem of not exhaustively searching all possibilities 
           return solution
 #+end_src
 
+Let's see if this helps in the case where match can fail like in the match_fail code block.
+
+#+name: match_fail_solved
+#+begin_src python :results output :noweb yes
+  from abstraction import *
+  agent = Agent()
+  agent.memory.add([1,0,1,0,1,0,0])
+  print agent.memory.dump()
+  problem = InferenceProblem(['x0'], ['x0', 0])
+  print [agent.solve(problem) for i in range(10)]
+  print [agent.solve_within(problem, 3000) for i in range(10)]
+#+end_src
+
+#+RESULTS: match_fail_solved
+: [[1, 0, 1, 0, 1, 0, 0]]
+: [{'x0': [1, 0, 1, 0, 1, 0]}, None, None, None, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, None, None, None, None]
+: [{'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}]
+
+We see here that solve_within is useful for getting the correct answer every time.
