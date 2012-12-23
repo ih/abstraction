@@ -640,9 +640,9 @@ And pose problems that test this different type of abstraction.
 #+name: surface_level_abstraction_problems
 #+begin_src python :noweb yes
   classify_problem4 = InferenceProblem(['v0'], [[8,8,8,8,8], 'v0'])
-  classify_problem5 = InferenceProblem(['v0'], [[2,2,2,2,2,2,1,1,1,1,1,1], 'v0']
+  classify_problem5 = InferenceProblem(['v0'], [[2,2,2,2,2,2,1,1,1,1,1,1], 'v0'])
   
-  classify_problem6 = InferenceProblem(['v0'], [[4,4,5,5,4,4,5,5,4,4,5,5], 'v0']
+  classify_problem6 = InferenceProblem(['v0'], [[4,4,5,5,4,4,5,5,4,4,5,5], 'v0'])
   
   completion_problem4 = InferenceProblem(['v0', 'v1'], [[5, 'v0', 6, 'v1'], 1])
   completion_problem5 = InferenceProblem(['v0'], [['v0',9,9,9], 0])
@@ -671,7 +671,6 @@ From the first patterns one interpretation of pattern1 could be a combination of
                  [[0,0,0,0,0,0,0,0,0,5,5,5,1,1,1, 2,4,2,4,2,4,], 1]]
   
 #+end_src
-
 
 
 **** The process of abstraction
@@ -1342,7 +1341,7 @@ One thing we have been doing is to print output as we go along then use this to 
 #+name: print_and_assert_equal
 #+begin_src python :noweb yes :tangle utility.py
   def print_and_assert(expression_text, operator, expression_output, assert_value):
-      print '%s => %s' % (expression_text, expression_output)d
+      print '%s => %s' % (expression_text, expression_output)
       assert(operator(expression_output, assert_value))
   
   def equal(a,b):
@@ -1760,7 +1759,22 @@ We need a more sophisticated way of choosing between abstractions.
 ******** An aside on time-based execution
 One way to approach the problem of not exhaustively searching all possibilities when performing various operations like match is to run the function for a set amount of time and either return the first answer or the best.
 
-#+name: time_agent
+    solutions = [match(inference_problem.partial_data, prior_data)
+                   for prior_data in self.memory.concrete_data]
+    
+    solutions = [solution for solution in solutions if solution != None]
+    
+    if solutions == []:
+        solutions = [match(inference_problem.partial_data, prior_data)
+                     for prior_data in self.memory.abstract_data]
+    
+        solutions = [solution for solution in solutions if solution != None]
+    
+    if solutions == []:
+        return None
+    else:
+        return random.choice(solutions)
+  #+name: time_agent
 #+begin_src python :noweb yes :tangle yes
   from time import time
   class Agent:
@@ -1798,3 +1812,32 @@ Let's see if this helps in the case where match can fail like in the match_fail 
 : [{'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}, {'x0': [1, 0, 1, 0, 1, 0]}]
 
 We see here that solve_within is useful for getting the correct answer every time.
+******** A more abstract pattern0
+In this section we'll begin to try and learn a more abstract version of pattern0 that can be described as a sequence of the same character.  We'll start by trying to solve classify_problem4 with the data we have then add additional prior_data of pattern0 to see if any useful abstraction comes out of it.  Solving these problems may require changes to the way abstraction work.
+********* solving classify_problem4
+Let's attempt to solve classify_problem4 with the data we already have in memory.
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  <<surface_level_abstraction_problems>>
+
+  print 'current memory: %s' % agent.memory.dump()
+  print 'classify_problem4 %s' % classify_problem4.partial_data
+  print agent.solve(classify_problem4)
+#+end_src
+
+#+RESULTS:
+: current memory: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]]
+: classify_problem4 [[8, 8, 8, 8, 8], 'v0']
+: None
+
+Right now the current "understanding" of pattern0 is at best decribed as 1 followed by something captured by [[1, 'v0'], 0].  Let's add some of the additional data about pattern0 that does not fit this mold.
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  <<additional_prior_data>>
+  
+  agent.memory.add(more_pattern0[0])
+  print 'agent memory: %s' % agent.memory.dump()
+#+end_src
+
+#+RESULTS:
+: agent memory: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22']]
