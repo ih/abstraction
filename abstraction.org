@@ -1693,7 +1693,7 @@ Let's continue to check how our new use of abstraction by solving classify_probl
 : classify_problem3 [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0']
 : {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': [0]}
 
-This example brings up the issue of how we deal with error.  Here we have an abstraction that produces an incorrect inference, how should the agent adjust once this is realized?  How should the agent receive feedback about the error?  One option is to not do anything explicit in changing the inference algorithm, but just add the correctly completed data from the inference problem to memory [DD].  This will mean the next time the problem is encountered it will be answered correctly.  Other possibilities for what to do when an error occurs may arise as the algorithm for selecting, which abstractions to use when solving an inference problem become more sophisticated.
+This example brings up the issue of how we deal with error.  Here we have an abstraction that produces an incorrect inference, how should the agent adjust once this is realized?  How should the agent receive feedback about the error? [OP]  One option is to not do anything explicit in changing the inference algorithm, but just add the correctly completed data from the inference problem to memory [DD].  This will mean the next time the problem is encountered it will be answered correctly.  Other possibilities for what to do when an error occurs may arise as the algorithm for selecting which abstractions to use when solving an inference problem become more sophisticated.
 
 #+begin_src python :noweb yes :tangle no
   agent.memory.add([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 1])
@@ -1853,5 +1853,20 @@ which if you run enough times you get
 #+RESULTS:
 : {'v12': 8, 'x0': [0], 'v11': [8, 8, 8, 8]}
 
-There are a few things to note.  The first is the abstractions created from pattern0[0] e.g. [['v11', 'v12'], 0] and [['v19', 'v20', 'v21'], 'v22'].  One thing we've ignored until now is choosing between applicable abstractions.  In this case we had to run solve several times before [['v11', 'v12'], 0] was chosen.  One question is how should the choice be made of what abstraction to use [OP] (open problem)? 
+There are a few things to note.  The first is the abstractions created from pattern0[0] e.g. [['v11', 'v12'], 0] and [['v19', 'v20', 'v21'], 'v22'].  One thing we've ignored until now is choosing between applicable abstractions.  In this case we had to run solve several times before [['v11', 'v12'], 0] was chosen.  One question is how should the choice be made of what abstraction to use [OP] (open problem)?  Another issue is these abstractions don't really capture the structure of pattern0; the reason being they are too general (and in fact this has been a problem all along e.g. [[1, 'v0'], 0], which was used to solve earlier inference problems of recognizing pattern0 could also be used for pattern1.
 
+An example of this is if we try to solve classify_problem3
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print classify_problem3.partial_data
+  print agent.solve(classify_problem3)
+#+end_src
+
+If we run it enough times we'll get
+
+#+RESULTS:
+: {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': [0]}
+
+We'll explore the question of what kind of abstraction is needed to distinguish pattern0 from pattern1 as well as how to generate such an abstraction from data.
+
+********* Abstractions for distinguishing between pattern0 and pattern1
