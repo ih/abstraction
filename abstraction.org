@@ -639,16 +639,16 @@ We'll also add in more prior_data to make the patterns more salient.
 And pose problems that test this different type of abstraction.
 #+name: surface_level_abstraction_problems
 #+begin_src python :noweb yes
-  classify_problem4 = InferenceProblem(['v0'], [[8,8,8,8,8], 'v0'])
-  classify_problem5 = InferenceProblem(['v0'], [[2,2,2,2,2,2,1,1,1,1,1,1], 'v0'])
+  classify_problem4 = InferenceProblem(['v0'], [[8,8,8,8,8], 'x0'])
+  classify_problem5 = InferenceProblem(['v0'], [[2,2,2,2,2,2,1,1,1,1,1,1], 'x0'])
   
-  classify_problem6 = InferenceProblem(['v0'], [[4,4,5,5,4,4,5,5,4,4,5,5], 'v0'])
+  classify_problem6 = InferenceProblem(['v0'], [[4,4,5,5,4,4,5,5,4,4,5,5], 'x0'])
   
-  completion_problem4 = InferenceProblem(['v0', 'v1'], [[5, 'v0', 6, 'v1'], 1])
-  completion_problem5 = InferenceProblem(['v0'], [['v0',9,9,9], 0])
+  completion_problem4 = InferenceProblem(['v0', 'v1'], [[5, 'x0', 6, 'x1'], 1])
+  completion_problem5 = InferenceProblem(['v0'], [['x0',9,9,9], 0])
   
-  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'v0',1,4,1], 'v0'])
-  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'v0'], 'v0'])
+  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'x0',1,4,1], 'x0'])
+  completion_problem6 = InferenceProblem(['v0'], [[1,4,1,1,4,1,1,4,1,'x0'], 'x0'])
 #+end_src
 
 Another type of pattern we should look at is when the data consists of parts that each have their own structure that may vary, but the relationship between these parts is what matters.  Intuitively digit recognition has is this type of problem where recognizing the character such as 5 is recognizing a flat top part connected to a vertical bar and loop part in a particular way.
@@ -1841,3 +1841,17 @@ Right now the current "understanding" of pattern0 is at best decribed as 1 follo
 
 #+RESULTS:
 : agent memory: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22']]
+
+Now if we try to solve classify_problem4 we get the following
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print 'classify_problem4 %s' % classify_problem4.partial_data
+  print agent.solve(classify_problem4)
+#+end_src
+
+which if you run enough times you get
+#+RESULTS:
+: {'v12': 8, 'x0': [0], 'v11': [8, 8, 8, 8]}
+
+There are a few things to note.  The first is the abstractions created from pattern0[0] e.g. [['v11', 'v12'], 0] and [['v19', 'v20', 'v21'], 'v22'].  One thing we've ignored until now is choosing between applicable abstractions.  In this case we had to run solve several times before [['v11', 'v12'], 0] was chosen.  One question is how should the choice be made of what abstraction to use [OP] (open problem)? 
+
