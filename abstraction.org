@@ -1870,3 +1870,22 @@ If we run it enough times we'll get
 We'll explore the question of what kind of abstraction is needed to distinguish pattern0 from pattern1 as well as how to generate such an abstraction from data.
 
 ********* Abstractions for distinguishing between pattern0 and pattern1
+Pattern0 can intuitively be described as a repeated sequence of the same character.  How could one capture this idea in terms of abstractions?  If we add more data from pattern0 what happens?
+
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print agent.memory.dump()
+  print 'adding more pattern0: %s' % more_pattern0[1]
+  agent.memory.add(more_pattern0[1])
+  print agent.memory.dump()
+#+end_src
+
+#+RESULTS:
+: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22']]
+: adding more pattern0: [[3, 3, 3, 3, 3], 0]
+: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[3, 3, 3, 3, 3], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22'], [['v23', 'v24'], 0], [['v25', 'v26', 'v27'], 0], [['v28', 'v29', 'v30', 'v31', 'v32'], 'v33'], [['v34', 'v35', 'v36', 'v37', 'v38', 'v39'], 'v40'], [['v41', 'v42', 'v43'], 0]]
+
+One direction is to introduce naming of abstractions and think of how to get the system to create recursive functions.  Another direction (which may turn out to be similar), which solves a more general problem is to better define how an input can be decomposed and reformulated in terms of its parts/multiple abstractions.  Recursion can be understood as a special case where the multiple parts are the same abstraction.  In either case we will need to modify how abstraction and solving work so let us start a new approximation.
+
+
+*** Third Approximation
+This approximation will focus on problems related to solving 
