@@ -1884,8 +1884,89 @@ Pattern0 can intuitively be described as a repeated sequence of the same charact
 : adding more pattern0: [[3, 3, 3, 3, 3], 0]
 : [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[3, 3, 3, 3, 3], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22'], [['v23', 'v24'], 0], [['v25', 'v26', 'v27'], 0], [['v28', 'v29', 'v30', 'v31', 'v32'], 'v33'], [['v34', 'v35', 'v36', 'v37', 'v38', 'v39'], 'v40'], [['v41', 'v42', 'v43'], 0]]
 
-One direction is to introduce naming of abstractions and think of how to get the system to create recursive functions.  Another direction (which may turn out to be similar), which solves a more general problem is to better define how an input can be decomposed and reformulated in terms of its parts/multiple abstractions.  Recursion can be understood as a special case where the multiple parts are the same abstraction.  In either case we will need to modify how abstraction and solving work so let us start a new approximation.
+#+begin_src python :noweb yes :tangle second_approximation2.py
+  print agent.memory.dump()
+  print 'adding more pattern0: %s' % more_pattern0[2]
+  agent.memory.add(more_pattern0[2])
+  print agent.memory.dump()
+#+end_src
+
+#+RESULTS:
+: adding more pattern0: [[5, 5, 5, 5, 5, 5, 5], 0]
+: [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[2, 2], 0], [[3, 3, 3, 3, 3], 0], [[5, 5, 5, 5, 5, 5, 5], 0], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1], [['v11', 'v12'], 0], [['v13', 'v14'], 0], [['v15', 'v16', 'v17'], 'v18'], [['v19', 'v20', 'v21'], 'v22'], [['v23', 'v24'], 0], [['v25', 'v26', 'v27'], 0], [['v28', 'v29', 'v30', 'v31', 'v32'], 'v33'], [['v34', 'v35', 'v36', 'v37', 'v38', 'v39'], 'v40'], [['v41', 'v42', 'v43'], 0], [['v44', 'v45'], 0], [['v46', 'v47', 'v48'], 0], [['v49', 'v50', 'v51', 'v52', 'v53'], 'v54'], [['v55', 'v56', 'v57', 'v58', 'v59', 'v60', 'v61'], 'v62'], [['v63', 'v64', 'v65'], 0], [['v66', 'v67', 'v68', 'v69', 'v70', 'v71'], 0]]
+
+Clearly the current mechanisms for abstracting and matching patterns will not capture the main features of pattern0 that distinguish it from pattern1.  One direction is to introduce naming of abstractions and think of how to get the system to create recursive functions.  Another direction (which may turn out to be similar), which solves a more general problem is to better define how an input can be decomposed and reformulated in terms of its parts/multiple abstractions.  Recursion can be understood as a special case where the multiple parts are the same abstraction.  Another problem that needs to be addressed is even if we can formulate the abstractions required for a given pattern, how do we select the correct ones when matching? [OP] In either case we will need to modify how abstraction and solving work so let us start a new approximation.  
 
 
 *** Third Approximation
-This approximation will focus on problems related to solving 
+The previous approximation allowed us to produce solutions to basic inference problems, but often times these solutions could be incorrect due to the random way abstractions were selected for matching.  Another reason was the limited patterns that could be expressed through the basic abstraction mechanism.  The question now is whether we should guide this next approximation by trying to enrich the abstraction process or by trying to make the matching process more selective.  Each will probably impact the other.  Let's work on match so that we can consistently solve the simple problems and then add complexity to solve harder problems.
+
+The issue we face now is that we have no criteria for choosing between different abstractions that exist in memory.  An example of why this is a problem can be seen in the following set up.  Suppose we introduce enough data from pattern0 to form an abstraction for it...
+
+---aside---
+There seems to be some common code we will be including each time so let's factor that out into its own code block
+
+#+name: imports_data_and_problems
+#+begin_src python :noweb yes
+  from abstraction import *
+  from utility import *
+  
+  <<binary_data>>
+  <<additional_prior_data>>
+  <<binary_data_classification_problems>>
+  <<additional_binary_classification_problems>>
+  <<additional_binary_completion_problems>>
+#+end_src
+-----------
+
+#+begin_src python :noweb yes :results output :tangle third_approximation_problem.py
+  <<imports_data_and_problems>>
+  
+  agent = Agent()
+  
+  agent.memory.add(pattern0[0])
+  print_and_assert('added pattern0[0]', equal, agent.memory.dump(), [pattern0[0]])
+  agent.memory.add(pattern0[1])
+  print_and_assert('added pattern0[1]', equal, agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]])
+  
+#+end_src
+
+#+RESULTS:
+: added pattern0[0] => [[[1], 0]]
+: added pattern0[1] => [[[1], 0], [[1, 1], 0], [[1, 'v0'], 0]]
+
+and we also introduce enough data from pattern1 to form an abstraction of it...
+
+ 
+#+begin_src python :noweb yes :tangle third_approximation_problem.py
+  agent.memory.add(pattern1[0])
+  print_and_assert('added pattern1[0]', equal, agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']])
+  agent.memory.add(pattern1[1])
+  print_and_assert('added pattern1[1]', equal, agent.memory.dump(), [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]])
+  
+#+end_src
+
+#+RESULTS:
+: added pattern1[0] => [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4']]
+: added pattern1[1] => [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1], [[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]]
+
+Now if we try to solve a problem of recognizing pattern1 we may get either pattern0 or pattern1.
+
+
+#+begin_src python :noweb yes :tangle third_approximation_problem.py
+  #classify_problem3 = InferenceProblem(['x0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
+  print [agent.solve(classify_problem3) for i in range(10)]
+#+end_src
+
+#+RESULTS:
+: [{'x0': ['v6'], 'v5': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {'x0': ['v8'], 'v7': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {'v1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': ['v2']}, {'v9': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], 'v10': [0, 0, 0, 0, 0], 'x0': [1]}, {'v9': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], 'v10': [0, 0, 0, 0], 'x0': [1]}, {'x0': ['v8'], 'v7': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': [0]}, {'x0': ['v4'], 'v3': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {'x0': ['v6'], 'v5': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {'x0': ['v4'], 'v3': [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}]
+
+We see match can result in many possible solutions.  Let's explore some possible principles for selecting different abstractions when matching.
+
+**** Criteria for matching
+***** Probability
+***** Compression
+***** Specificity
+
+
+
