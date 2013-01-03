@@ -1964,9 +1964,14 @@ Now if we try to solve a problem of recognizing pattern1 we may get either patte
 We see match can result in many possible solutions.  Let's explore some possible principles for selecting different abstractions when matching.
 
 **** Criteria for matching
-***** Probability
-***** Compression
-***** Specificity
+One way to to develop criteria for matching is to revisit the idea of an abstraction representing a set.  Given a bunch of sets (abstractions) how might we decide which is the best to try and match to?  One idea would be to say if a lot of previous data was found to be in a set (matched an abstraction) then it is likely new data would also be in that set.  We can also think of the sets hierarchically with more specific abstractions being sets contained more general abstractions.  This lends itself to hierarchical search when matching where we first look at the largest sets then narrow down.  
+
+Let's try and combine these two ideas in our new version of match.  Let's first restructure abstractions in memory so that hierarchical searching is easy, then keep track of how often data fit into a particular set (i.e. match an abstraction) and use these counts to guide search.  Lastly it'd be nice to develop some more rigorous theoretical arguments motivating  two design decisions.
+
+***** Hierarchical search through abstractions
+***** Counting matches
+***** Theoretical justifications
+
 
 
 
