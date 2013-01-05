@@ -1963,12 +1963,21 @@ Now if we try to solve a problem of recognizing pattern1 we may get either patte
 
 We see match can result in many possible solutions.  Let's explore some possible principles for selecting different abstractions when matching.
 
-**** Criteria for matching
-One way to to develop criteria for matching is to revisit the idea of an abstraction representing a set.  Given a bunch of sets (abstractions) how might we decide which is the best to try and match to?  One idea would be to say if a lot of previous data was found to be in a set (matched an abstraction) then it is likely new data would also be in that set.  We can also think of the sets hierarchically with more specific abstractions being sets contained more general abstractions.  This lends itself to hierarchical search when matching where we first look at the largest sets then narrow down.  
+**** More sophisticated matching
+One solution for the problem demonstrated above is to choose more specific matches i.e. choosing abstractions where more of the data matches.  In the case above [[1, 'v0'], 0] matches 1 and 0 in [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] whereas [[1, 1, 'v9', 0, 0, 'v10'], 1] matches 1,1 and 0,0 and 1.  Is it always the case that more specific matches will produce better inferences [OP]?  This seems ok, but intuitively it seems like we should explore how match can be improved by hierarchical organization of abstractions.  By exploring hierarchical search for match we can also implement finding the most specific match as a criteria.
+
+Let's revisit the idea of an abstraction representing a set.  Given a bunch of sets (abstractions) how might we decide which is the best to try and match to?  One idea would be to say if a lot of previous data was found to be in a set (matched an abstraction) then it is likely new data would also be in that set.  We can also think of the sets hierarchically with more specific abstractions being sets contained more general abstractions.  This lends itself to hierarchical search when matching where we first look at the largest sets then narrow down.  
 
 Let's try and combine these two ideas in our new version of match.  Let's first restructure abstractions in memory so that hierarchical searching is easy, then keep track of how often data fit into a particular set (i.e. match an abstraction) and use these counts to guide search.  Lastly it'd be nice to develop some more rigorous theoretical arguments motivating  two design decisions.
 
 ***** Hierarchical search through abstractions
+Two aspects we'll need to change in order to have hierarchical search are 
+1. the way abstractions are organized in memory
+2. the algorithm for searching through memory
+
+****** Organizing abstractions
+Inutuitively it seems like we want the "most abstract" abstractions at the top of the hierarchy.  One reason is these are the largest sets i.e. they're the most general abstractions and thus will match against the most things.  What makes one abstraction more general than another?  If the set the abstraction represents contains the set the other abstraction represents then the first abstraction is more general.  Some questions arise if we go down this path.  What about the case of abstractions of abstractions?  What about sets that intersect, but are not completely contained within another?  What about recursive abstractions?
+
 ***** Counting matches
 ***** Theoretical justifications
 
