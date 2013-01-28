@@ -1956,6 +1956,7 @@ Now if we try to solve a problem of recognizing pattern1 we may get either patte
 #+begin_src python :noweb yes :tangle third_approximation_problem.py
   #classify_problem3 = InferenceProblem(['x0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
   print [agent.solve(classify_problem3) for i in range(10)]
+pr
 #+end_src
 
 #+RESULTS:
@@ -1977,6 +1978,27 @@ Two aspects we'll need to change in order to have hierarchical search are
 
 ****** Organizing abstractions
 Inutuitively it seems like we want the "most abstract" abstractions at the top of the hierarchy.  One reason is these are the largest sets i.e. they're the most general abstractions and thus will match against the most things.  What makes one abstraction more general than another?  If the set the abstraction represents contains the set the other abstraction represents then the first abstraction is more general.  Some questions arise if we go down this path.  What about the case of abstractions of abstractions?  What about sets that intersect, but are not completely contained within another?  What about recursive abstractions?
+
+Let's look at the set of  abstractions we get from our exisitng method of abstraction and see how if changes in organization can help solve the problem of choosing the most appropriate abstraction when solving an inference problem.
+
+******* Abstractions for [[[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1]]
+Given the first two instances of pattern0 and pattern1 we get the following abstractions
+
+[[[1, 'v0'], 0], [[1, 'v1'], 'v2'], [[1, 1, 'v3'], 'v4'], [[1, 'v5'], 'v6'], [[1, 1, 'v7'], 'v8'], [[1, 1, 'v9', 0, 0, 'v10'], 1]]
+
+
+Intuitively it seems like the most important abstractions are [[1, 'v0'], 0] and [[1, 1, 'v9', 0, 0, 'v10'], 1] in the sense that these can be used to infer the solution to the classfiication problems (since they have a non-variable in the class position).  This brings up a point about the relevance of abstractions base on the problem, is there one "best" hierarchy for the abstractions given how different the inference problems can be?
+
+If we try to group the abstractions based on the set interpretation we get  
+[[1, 'v1'], 'v2'] === [[1, 'v5'], 'v6'] at the top
+
+[[1, 1, 'v7'], 'v8'] ==== [[1, 1, 'v3'], 'v4'] contained in [[1, 'v1'], 'v2']
+
+[[1, 'v0'], 0] contained in [[1, 'v1'], 'v2'] and intersecting with [[1, 1, 'v7'], 'v8']
+
+and
+
+[[1, 1, 'v9', 0, 0, 'v10'], 1] contained in [[1, 1, 'v7'], 'v8']
 
 ***** Counting matches
 ***** Theoretical justifications
