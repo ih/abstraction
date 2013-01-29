@@ -2000,6 +2000,38 @@ and
 
 [[1, 1, 'v9', 0, 0, 'v10'], 1] contained in [[1, 1, 'v7'], 'v8']
 
+Two questions that arise are 1) does this organization help solve inference problems? 2) if it does how should the organization be implemented?
+
+******** Example of Using hierarchical organization to solve inference problems
+Let's look at the original problem that motivated this exploration of hierarchical organization then examine other inference problems
+
+********* classify_problem3
+We were trying to solve classify_problem3 ([[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0']) given data [[1], 0], [[1, 1], 0], [[1, 1, 0, 0], 1], [[1, 1, 1, 0, 0, 0], 1].
+
+Given the above organization, one way to try and match is to start from the top and move downward.
+
+Matching [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] with [[1, 'v1'], 'v2'] returns
+
+
+#+begin_src python :noweb yes
+  from abstraction import match
+  import pdb
+  pdb.set_trace()
+  print match([[1, 'v1'], 'v2'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
+#+end_src
+
+#+RESULTS:
+: {'v1': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'v2': ['x0']}
+
+Now we can try to match against abstractions lower in the hierarchy until we get to the lowest level, which would be [[1, 1, 'v9', 0, 0, 'v10'], 1].  Why matches against the lowest level be the best matches for inference [OP]?
+
+********* classify_problem2
+For classify_problem2 ([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'x0']) we would first match to [[1, 'v1'], 'v2'], then [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  [[1, 1, 'v9', 0, 0, 'v10'], 1] does not match so we have to choose between [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  In this case it seems [[1, 'v0'], 0] is a less abstract match (0 vs. 'v8').
+
+******* Implementation of hierarchical organization and matching algorithm
+In order to support the more complicated organization of abstractions we'll need to modify the data structure for memory.  We'll also need to modify the match function to take advantage of the new structure.
+******** Memory structure
+******** Hierarchical Match
 ***** Counting matches
 ***** Theoretical justifications
 
