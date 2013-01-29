@@ -1555,8 +1555,8 @@ In the last section we manually performed the abstraction step as we added data 
 
 In addition to storing new data the agent gets we'll also want to create and store abstractions; we'll need to make a few design decisions for the new implementation.  For this version when we get new data we'll only create abstractions with "non-abstract" data.  The motivation is to  more easily identify the need for more complicated abstraction by trying to solve a problem where abstracting between concrete and abstract data is needed.  To help accomplish this we'll store abstractions separately from the non-abstract data and perhaps as we introduce higher order abstractions each level of abstraction will be kept separately although we'll have to see what benefit there might be to this strategy [DD].
 
-#+name: memory
-#+begin_src python :noweb yes :tangle yes
+#+name: memory_deprecated
+#+begin_src python :noweb yes :tangle no
     class Memory:
         def __init__(self):
             self.concrete_data = []
@@ -2027,10 +2027,31 @@ Now we can try to match against abstractions lower in the hierarchy until we get
 
 ********* classify_problem2
 For classify_problem2 ([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'x0']) we would first match to [[1, 'v1'], 'v2'], then [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  [[1, 1, 'v9', 0, 0, 'v10'], 1] does not match so we have to choose between [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  In this case it seems [[1, 'v0'], 0] is a less abstract match (0 vs. 'v8').
-
+********* Additional sophistication
+The previous descriptions are pretty basic ways of organizing and using hierarchical structure. It's easy to see there is quite a bit of redundancy in the abstractions and in another approximation we'll explore how to create more compact representations and how to use them in matching [OP].
 ******* Implementation of hierarchical organization and matching algorithm
 In order to support the more complicated organization of abstractions we'll need to modify the data structure for memory.  We'll also need to modify the match function to take advantage of the new structure.
 ******** Memory structure
+The basic idea of the hierarchical organization We can think of every abstraction as a set so let's create a data structure in memory that associates a set with an abstraction.
+
+#+name: abstraction_set
+#+begin_src python :noweb yes :tangle yes
+  class AbstractionSet:
+      def __init__(self, abstraction):
+          #set of AbstractionSets
+          self.set = set([])
+          self.abstraction = abstraction
+  
+      def contains(self, abstraction):
+          <<abstraction_set_containment>>
+#+end_src
+
+#+name: memory
+#+begin_src python :noweb yes
+  class Memory:
+      def __init__(self):
+          self
+#+end_src
 ******** Hierarchical Match
 ***** Counting matches
 ***** Theoretical justifications
