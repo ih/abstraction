@@ -1594,7 +1594,7 @@ Let's test out the new structure for memory by adding data.
 
 Now that we've changed the way data is stored in memory we must also adjust how the agent solves inference problems.  The basic algorithm will be to try to match the problem to concrete data and if there is no match from that then try to match it to an abstraction [DD].
 
-#+name: agent_solve
+#+name: agent_solve_deprecated
 #+begin_src python :noweb yes
   solutions = [match(inference_problem.partial_data, prior_data)
                  for prior_data in self.memory.concrete_data]
@@ -2016,7 +2016,6 @@ Matching [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] with [[1, 'v1'], 'v2'
 #+begin_src python :noweb yes
   from abstraction import match
   import pdb
-  pdb.set_trace()
   print match([[1, 'v1'], 'v2'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
 #+end_src
 
@@ -2029,10 +2028,50 @@ Now we can try to match against abstractions lower in the hierarchy until we get
 For classify_problem2 ([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'x0']) we would first match to [[1, 'v1'], 'v2'], then [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  [[1, 1, 'v9', 0, 0, 'v10'], 1] does not match so we have to choose between [[1, 1, 'v7'], 'v8'] and [[1, 'v0'], 0].  In this case it seems [[1, 'v0'], 0] is a less abstract match (0 vs. 'v8').
 ********* Additional sophistication
 The previous descriptions are pretty basic ways of organizing and using hierarchical structure. It's easy to see there is quite a bit of redundancy in the abstractions and in another approximation we'll explore how to create more compact representations and how to use them in matching [OP].
-******* Implementation of hierarchical organization and matching algorithm
-In order to support the more complicated organization of abstractions we'll need to modify the data structure for memory.  We'll also need to modify the match function to take advantage of the new structure.
+******* Implementation of hierarchical organization and solving algorithm
+In order to support the more complicated organization of abstractions we'll need to modify the data structure for memory.  We'll also need to modify the solve function to take advantage of the new structure.
+******** Hierarchical Solve
+Let's first look at how solve will work to determine the interface for the hierarchical memory organization.  The general algorithm will be to start at the highest level abstractions and traverse down for each finding the lowest level match then take the "least abstract" match.  
+
+#+name: agent_solve
+#+begin_src python :noweb yes :tangle yes
+  <<find_lowest_match>>
+  <<get_least_abstract_match>>
+  possible_solutions = []
+  for top_abstraction in self.memory.top_abstractions:
+      possible_solutions.append(find_lowest_match(top_abstraction, inference_problem.partial_data))
+  
+  return get_least_abstract_match(possible_solutions)
+#+end_src
+
+Traversing down a hierarchy is a recursive process of trying to match the current abstraction and if there is no match then returning the parent, if there is a match then seeing if there are any children abstractions and if so trying to match against them. 
+#+name: find_lowest_match
+
+#+begin_src python :noweb yes
+  def find_lowest_match(top_abstraction, partial_data):
+      leaves = []
+      def traverse(abstraction_set, depth):
+          match = abstraction.match(abstraction_set, partial_data)
+          if match == None:
+              return None
+          elif abstraction_set.get_children() == []:
+              leaves.append((match, depth))
+              return True
+          else:
+              child_matches = [traverse(child_abstraction_set, depth+1) for child_abstraction_set
+                               in abstraction_set.get_children()]
+              if not any(child_matches):
+                  leaves.append(match, depth)
+                  return True
+              else:
+                  return None
+  
+      traverse(top_abstraction, 0)
+      
+#+end_src
+
 ******** Memory structure
-The basic idea of the hierarchical organization We can think of every abstraction as a set so let's create a data structure in memory that associates a set with an abstraction.
+The basic idea of the hierarchical organization We can think of every abstraction as a set so let's create a data structure that associates a set with an abstraction.
 
 #+name: abstraction_set
 #+begin_src python :noweb yes :tangle yes
@@ -2046,13 +2085,16 @@ The basic idea of the hierarchical organization We can think of every abstractio
           <<abstraction_set_containment>>
 #+end_src
 
+
+
 #+name: memory
 #+begin_src python :noweb yes
   class Memory:
       def __init__(self):
           self
 #+end_src
-******** Hierarchical Match
+
+
 ***** Counting matches
 ***** Theoretical justifications
 
