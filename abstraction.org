@@ -2048,10 +2048,11 @@ Traversing down a hierarchy is a recursive process of trying to match the curren
 #+name: find_lowest_match
 
 #+begin_src python :noweb yes
-  def find_lowest_match(top_abstraction, partial_data):
+  def find_lowest_match(top_abstraction, inference_problem):
+  
       leaves = []
       def traverse(abstraction_set, depth):
-          match = abstraction.match(abstraction_set, partial_data)
+          match = abstraction.match(abstraction_set, inference_problem.partial_data)
           if match == None:
               return None
           elif abstraction_set.get_children() == []:
@@ -2067,7 +2068,18 @@ Traversing down a hierarchy is a recursive process of trying to match the curren
                   return None
   
       traverse(top_abstraction, 0)
-      
+      sorted_leaves = sorted(leaves, key=lambda leaf: leaf[1])
+      for possible_match in sorted_leaves:
+          if all([is_primitive(possible_match[variable]) for variable in inference_problem.variables]):
+              return possible_match
+      return sorted_leaves[0]
+#+end_src
+
+#+name: is_primitive
+#+begin_src python :noweb yes :tangle yes
+  def is_primitive(thing):
+      return not is_variable(thing) and not isinstance(thing, list)
+  
 #+end_src
 
 ******** Memory structure
