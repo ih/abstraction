@@ -2046,7 +2046,6 @@ Let's first look at how solve will work to determine the interface for the hiera
 
 Traversing down a hierarchy is a recursive process of trying to match the current abstraction and if there is no match then returning the parent, if there is a match then seeing if there are any children abstractions and if so trying to match against them. 
 #+name: find_lowest_match
-
 #+begin_src python :noweb yes
   def find_lowest_match(top_abstraction, inference_problem):
   
@@ -2093,17 +2092,23 @@ The basic idea of the hierarchical organization We can think of every abstractio
           self.set = set([])
           self.abstraction = abstraction
   
-      def contains(self, abstraction):
-          <<abstraction_set_containment>>
+      def get_children():
+          return self.set
+  
 #+end_src
 
+We need to modify how data is added to memory.  One possibility is to start at each of the "root" abstraction sets and try to traverse the data down the abstraction hierarchy to a leaf.  When should an abstraction be created then?  Perhaps if the new data is not contained in any leaf abstractions then create a new leaf abstraction that contains it.
 
+Let's see how this works out with our running example.
+
+********* Creating abstractions
 
 #+name: memory
 #+begin_src python :noweb yes
   class Memory:
       def __init__(self):
-          self
+          self.abstraction_sets = []
+
 #+end_src
 
 
