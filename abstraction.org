@@ -2034,7 +2034,7 @@ In order to support the more complicated organization of abstractions we'll need
 Let's first look at how solve will work to determine the interface for the hierarchical memory organization.  The general algorithm will be to start at the highest level abstractions and traverse down for each finding the lowest level match then take the "least abstract" match.  
 
 #+name: agent_solve
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes
   <<find_lowest_match>>
   <<get_least_abstract_match>>
   possible_solutions = []
@@ -2095,21 +2095,41 @@ The basic idea of the hierarchical organization We can think of every abstractio
       def get_children():
           return self.set
   
+      def __str__(self):
+          return '%s, %s' % (str(self.abstraction), str(self.set)) 
 #+end_src
-
-We need to modify how data is added to memory.  One possibility is to start at each of the "root" abstraction sets and try to traverse the data down the abstraction hierarchy to a leaf.  When should an abstraction be created then?  Perhaps if the new data is not contained in any leaf abstractions then create a new leaf abstraction that contains it.
-
-Let's see how this works out with our running example.
-
-********* Creating abstractions
 
 #+name: memory
 #+begin_src python :noweb yes
   class Memory:
       def __init__(self):
           self.abstraction_sets = []
-
+  
+      def add(self, data):
+          <<memory_add>>
 #+end_src
+
+
+We need to modify how data is added to memory.  One possibility is to start at each of the "root" abstraction sets and try to traverse the data down the abstraction hierarchy to a leaf.  When should an abstraction be created then?  Perhaps if the new data is not contained in any leaf abstractions then create a new leaf abstraction that contains it.
+
+Let's see how this works out with the example we started with for the third approximation (adding pattern0[0], pattern0[1], pattern1[0], and pattern0[1])
+
+********* Creating abstractions when they do not fit in any of the leaves example
+We start by adding pattern0[0], [[1], 0].  The first thing to do is create an abstraction set for it.   
+
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  <<imports_data_and_problems>>
+  abstraction_set = AbstractionSet(abstraction = pattern0[0])
+    
+  print abstraction_set
+#+end_src
+
+#+RESULTS:
+: [[1], 0], set([])
+
+Since memory.abstraction_sets is empty we'll create an abstrac
+
+
 
 
 ***** Counting matches
