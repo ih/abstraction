@@ -2087,16 +2087,16 @@ The basic idea of the hierarchical organization We can think of every abstractio
 #+name: abstraction_set
 #+begin_src python :noweb yes :tangle yes
   class AbstractionSet:
-      def __init__(self, abstraction):
+      def __init__(self, abstraction, elements=set([])):
           #set of AbstractionSets
-          self.set = set([])
+          self.elements = elements
           self.abstraction = abstraction
   
       def get_children():
-          return self.set
+          return self.elements
   
       def __str__(self):
-          return '%s, %s' % (str(self.abstraction), str(self.set)) 
+          return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements]) 
 #+end_src
 
 #+name: memory
@@ -2144,7 +2144,20 @@ Next we get pattern0[1], [[1, 1], 0], and create an abstraction set for it.
 Now when we add this abstraction set to memory we check whether it can be contained in an existing abstraction set, which it cannot.  
 
 At this point it seems natural to try and create an abstraction and corresponding abstraction set that contains both the data so far.  The important question is whether there is a general principle here of when to create such an abstraction.  Ideally one would collect data and be able to abstract patterns on when to create abstractions, but for now let's find a simple rule e.g. if there are two abstraction sets at the same level and a new one can be created containing both then create it.
-          
+
+We take the two abstraction sets and create an abstraction from them creating 
+
+
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  children_sets = set([abstraction_set, abstraction_set1])
+  abstraction_set0_01 = AbstractionSet(abstraction = [[1, 'v0'], 0], elements=children_sets)
+  print abstraction_set0_01
+#+end_src
+
+#+RESULTS:
+: [[1, 'v0'], 0], ['[[1], 0], []', '[[1, 1], 0], []']
+
+The next piece of data we add is pattern1[0], [[1, 1, 0, 0], 1].           
   
 
 ***** Counting matches
