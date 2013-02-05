@@ -2118,7 +2118,7 @@ Let's see how this works out with the example we started with for the third appr
 We start by adding pattern0[0], [[1], 0].  The first thing to do is create an abstraction set for it.   
 
 #+begin_src python :noweb yes :tangle abstraction_set_example1.py
-  <<imports_data_and_problems>>
+  <<imports_data_and_problems>>  
   abstraction_set = AbstractionSet(abstraction = pattern0[0])
     
   print abstraction_set
@@ -2127,10 +2127,25 @@ We start by adding pattern0[0], [[1], 0].  The first thing to do is create an ab
 #+RESULTS:
 : [[1], 0], set([])
 
-Since memory.abstraction_sets is empty we'll create an abstrac
+Since there aren't any abstraction sets in memory we'll add it as the only one.
+
+Next we get pattern0[1], [[1, 1], 0], and create an abstraction set for it.
 
 
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  abstraction_set1 = AbstractionSet(abstraction = pattern0[1])
+  
+  print abstraction_set1
+#+end_src
 
+#+RESULTS:
+: [[1, 1], 0], set([])
+
+Now when we add this abstraction set to memory we check whether it can be contained in an existing abstraction set, which it cannot.  
+
+At this point it seems natural to try and create an abstraction and corresponding abstraction set that contains both the data so far.  The important question is whether there is a general principle here of when to create such an abstraction.  Ideally one would collect data and be able to abstract patterns on when to create abstractions, but for now let's find a simple rule e.g. if there are two abstraction sets at the same level and a new one can be created containing both then create it.
+          
+  
 
 ***** Counting matches
 ***** Theoretical justifications
