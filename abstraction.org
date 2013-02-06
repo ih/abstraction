@@ -2157,9 +2157,25 @@ We take the two abstraction sets and create an abstraction from them creating
 #+RESULTS:
 : [[1, 'v0'], 0], ['[[1], 0], []', '[[1, 1], 0], []']
 
-The next piece of data we add is pattern1[0], [[1, 1, 0, 0], 1].           
-  
+The next piece of data we add is pattern1[0], [[1, 1, 0, 0], 1].
 
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  abstraction_set2 = AbstractionSet(abstraction = pattern1[0])
+  print abstraction_set2
+#+end_src
+
+#+RESULTS:
+: [[1, 1, 0, 0], 1], []  
+
+We check to see if it can be contained in abstraction_set0_01.  It cannot so when we add it to memory it exists at the same level as abstraction_set0_01.  We can form a new abstraction set between abstraction_set0_01 and pattern1[0].
+
+
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  print abstraction.abstract([[1, 1, 0, 0], 1], [[1, 'v0'], 0])
+#+end_src
+
+#+RESULTS:
+: [[1, 'v0', 'v1'], 'v2']
 ***** Counting matches
 ***** Theoretical justifications
 
