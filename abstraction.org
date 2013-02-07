@@ -1897,7 +1897,6 @@ Pattern0 can intuitively be described as a repeated sequence of the same charact
 
 Clearly the current mechanisms for abstracting and matching patterns will not capture the main features of pattern0 that distinguish it from pattern1.  One direction is to introduce naming of abstractions and think of how to get the system to create recursive functions.  Another direction (which may turn out to be similar), which solves a more general problem is to better define how an input can be decomposed and reformulated in terms of its parts/multiple abstractions.  Recursion can be understood as a special case where the multiple parts are the same abstraction.  Another problem that needs to be addressed is even if we can formulate the abstractions required for a given pattern, how do we select the correct ones when matching? [OP] In either case we will need to modify how abstraction and solving work so let us start a new approximation.  
 
-
 *** Third Approximation
 The previous approximation allowed us to produce solutions to basic inference problems, but often times these solutions could be incorrect due to the random way abstractions were selected for matching.  Another reason was the limited patterns that could be expressed through the basic abstraction mechanism.  The question now is whether we should guide this next approximation by trying to enrich the abstraction process or by trying to make the matching process more selective.  Each will probably impact the other.  Let's work on match so that we can consistently solve the simple problems and then add complexity to solve harder problems.
 
@@ -2176,6 +2175,12 @@ We check to see if it can be contained in abstraction_set0_01.  It cannot so whe
 
 #+RESULTS:
 : [[1, 'v0', 'v1'], 'v2']
+TODO(irvin) why are there two variables in a row?
+look at abstract([1, 1, 0, 0], [1, 'v0'])
+need to either fix this case
+        if position_in_big < len(big_list):
+            element_abstractions.append(variable_generator.generate())
+or merge variables post abstraction
 ***** Counting matches
 ***** Theoretical justifications
 
