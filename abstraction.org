@@ -810,7 +810,7 @@ Let's look at another case where there are non-matching elements in the smaller 
   #if there are more elements left in the big list bind them to a variable, observe
   #position_in_big was incremented one last time so we check it against len(big_list) instead
   #of len(big_list)-1 the position of the last element in big_list
-  if position_in_big < len(big_list):
+  if position_in_big < len(big_list) and not is_variable(element_abstractions[-1]):
       element_abstractions.append(variable_generator.generate())
   return element_abstractions
   
@@ -2170,17 +2170,11 @@ We check to see if it can be contained in abstraction_set0_01.  It cannot so whe
 
 
 #+begin_src python :noweb yes :tangle abstraction_set_example1.py
-  print abstraction.abstract([[1, 1, 0, 0], 1], [[1, 'v0'], 0])
+  print abstract([[1, 1, 0, 0], 1], [[1, 'v0'], 0])
 #+end_src
 
 #+RESULTS:
-: [[1, 'v0', 'v1'], 'v2']
-TODO(irvin) why are there two variables in a row?
-look at abstract([1, 1, 0, 0], [1, 'v0'])
-need to either fix this case
-        if position_in_big < len(big_list):
-            element_abstractions.append(variable_generator.generate())
-or merge variables post abstraction
+: [[1, 'v1'], 'v1']
 ***** Counting matches
 ***** Theoretical justifications
 
