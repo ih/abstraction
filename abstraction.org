@@ -2174,7 +2174,26 @@ We check to see if it can be contained in abstraction_set0_01.  It cannot so whe
 #+end_src
 
 #+RESULTS:
-: [[1, 'v1'], 'v1']
+: [[1, 'v0'], 'v1']
+
+And we create a new abstraction_set for this abstraction and add it to memory
+
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  children_sets = set([abstraction_set0_01, abstraction_set2])
+  abstraction_set1_012 = AbstractionSet(abstraction = [[1, 'v0'], 'v1'], elements = children_sets)
+  print abstraction_set1_012
+#+end_src
+
+#+RESULTS:
+: [[1, 'v0'], 'v1'], ["[[1, 'v0'], 0], ['[[1], 0], []', '[[1, 1], 0], []']", '[[1, 1, 0, 0], 1], []']
+
+If we add pattern1[1], [[1, 1, 1, 0, 0, 0], 1], we find it is contained in abstraction_set1_012.  Now we see if it is contained in the children of abstraction_set1_012, [[1, 'v0'], 0] and [[1, 1, 0, 0], 1], which it is not.  We see if any abstraction can be created with its siblings and an abstraction can be created with [[1, 1, 0, 0], 1], i.e. [[1, 1, 'v9', 0, 0, 'v10'], 1].  We need to adjust memory so that we have a new abstraction set corresponding to [[1, 1, 'v9', 0, 0, 'v10'], 1] and adjust the structure of [[1, 'v0'], 'v1'] so that it contains [[1, 1, 'v9', 0, 0, 'v10'], 1].
+#+name: 
+#+begin_src python :noweb yes
+[[1, 1, 'v9', 0, 0, 'v10'], 1]
+#+end_src
+
+
 ***** Counting matches
 ***** Theoretical justifications
 
