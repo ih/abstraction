@@ -2213,7 +2213,23 @@ and adjust the structure of [[1, 'v0'], 'v1'] so that it contains [[1, 1, 'v9', 
 #+RESULTS:
 : [[1, 'v0'], 'v1'], ["[[1, 1, 'v9', 0, 0, 'v10'], 1], ['[[1, 1, 1, 0, 0, 0], 1], []', '[[1, 1, 0, 0], 1], []']", "[[1, 'v0'], 0], ['[[1], 0], []', '[[1, 1], 0], []']"]
 
+********* Solving inference problems with a hierarchically structured memory example
+Now that we have data from both patterns in memory, let's see if this structure helps solve the problem we're trying to address with this third approximation (which is to consistently get the correct inference).  
 
+What happens now if we try to solve classify_problem3 ([[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])?
+
+The first thing is to recognize it belongs in our only top-level abstraction set abstraction_set1_012.
+
+
+#+begin_src python :noweb yes :tangle abstraction_set_example1.py
+  print match([[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'], [[1, 'v0'], 'v1'])
+#+end_src
+
+#+RESULTS:
+: {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': ['v1']}
+
+
+Now the two abstraction sets that contain [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] are [[1, 1, 'v9', 0, 0, 'v10'], 1] and [[1, 'v0'], 0].  We could say since [[1, 1, 'v9', 0, 0, 'v10'], 1] matches "more" then it should be the one chosen, but is there a more rigorous explanation? [OP]
 ***** Counting matches
 ***** Theoretical justifications
 
