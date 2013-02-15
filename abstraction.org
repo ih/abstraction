@@ -2229,7 +2229,17 @@ The first thing is to recognize it belongs in our only top-level abstraction set
 : {'v0': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'x0': ['v1']}
 
 
-Now the two abstraction sets that contain [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] are [[1, 1, 'v9', 0, 0, 'v10'], 1] and [[1, 'v0'], 0].  We could say since [[1, 1, 'v9', 0, 0, 'v10'], 1] matches "more" then it should be the one chosen, but is there a more rigorous explanation? [OP]
+Now the two abstraction sets that contain [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'] are [[1, 1, 'v9', 0, 0, 'v10'], 1] and [[1, 'v0'], 0].  We could say since [[1, 1, 'v9', 0, 0, 'v10'], 1] matches "more" then it should be the one chosen, but is there a more rigorous explanation? [OP]  It doesn't seem like we need hierarchical organization if we are picking abstractions based on amount of matching (although perhaps it helps with speed and gives a rule for when to create abstractions).  
+********* Implementation
+Based on the previous example when we add data to memory we need to 
+
+1) create an AbstractionSet for it
+
+2) sink it down the current hierarchy of AbstractionSets
+
+3) If it's possible to create an abstraction with any siblings then do so
+
+4) rearrange the AbstractionSet hierarchy for any newly created abstraction sets
 ***** Counting matches
 ***** Theoretical justifications
 
