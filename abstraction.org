@@ -2240,6 +2240,18 @@ Based on the previous example when we add data to memory we need to
 3) If it's possible to create an abstraction with any siblings then do so
 
 4) rearrange the AbstractionSet hierarchy for any newly created abstraction sets
+
+What happens if there are multiple top-level abstraction sets and new data can go into more than one?  This can't happen because if the new data matched against more than one top-level abstraction then those abstractions would have something in common and would have merged in the past.
+
+Adding knowledge of the parent AbstractionSet will make access to siblings easier, which is useful when creating abstractions by merging siblings.  Will an abstraction set ever have more than one parent?  
+
+#+name: memory_add
+#+begin_src python :noweb yes
+  new_data_abstraction_set = AbstractionSet(new_data)
+  [abstraction_set.insert(new_data_abstraction_set) for abstraction_set in new_data_abstraction_set]
+  new_data_abstraction_set.merge_siblings()
+  
+#+end_src
 ***** Counting matches
 ***** Theoretical justifications
 
