@@ -2083,8 +2083,8 @@ Traversing down a hierarchy is a recursive process of trying to match the curren
 ******** Memory structure
 The basic idea of the hierarchical organization We can think of every abstraction as a set so let's create a data structure that associates a set with an abstraction.
 
-#+name: abstraction_set
-#+begin_src python :noweb yes :tangle yes
+#+name: abstraction_set_deprecated
+#+begin_src python :noweb yes :tangle no
   class AbstractionSet:
       def __init__(self, abstraction, elements=set([])):
           #set of AbstractionSets
@@ -2243,15 +2243,49 @@ Based on the previous example when we add data to memory we need to
 
 What happens if there are multiple top-level abstraction sets and new data can go into more than one?  This can't happen because if the new data matched against more than one top-level abstraction then those abstractions would have something in common and would have merged in the past.
 
-Adding knowledge of the parent AbstractionSet will make access to siblings easier, which is useful when creating abstractions by merging siblings.  Will an abstraction set ever have more than one parent?  
+Adding knowledge of the parent AbstractionSet will make access to siblings easier, which is useful when creating abstractions by merging siblings.  Will an abstraction set ever have more than one parent?  It's easy enough to implement for multiple possible parents.
 
 #+name: memory_add
 #+begin_src python :noweb yes
   new_data_abstraction_set = AbstractionSet(new_data)
   [abstraction_set.insert(new_data_abstraction_set) for abstraction_set in new_data_abstraction_set]
-  new_data_abstraction_set.merge_siblings()
+  create_new_abstractions_and_reorganize(new_data_abstraction_set)
+#+end_src
+
+AbstractionSet's insert function takes an abstraction and has it descend into the hierarchy until it reaches a point where it is not contained in any children sets.
+#+name: abstraction_set
+#+begin_src python :noweb yes :tangle yes
+  class AbstractionSet:
+      def __init__(self, abstraction, elements=set([])):
+          #set of AbstractionSets
+          self.elements = elements
+          self.abstraction = abstraction
+  
+      def get_children():
+          return self.elements
+  
+      def insert(abstraction_set):
+          <<abstraction_set_insert>>
+  
+      def __str__(self):
+          return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements])
   
 #+end_src
+
+#+name: abstraction_set_insert
+#+begin_src python :noweb yes
+
+#+end_src
+
+
+The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
+
+#+name: 
+#+begin_src python :noweb yes
+
+#+end_src
+
+
 ***** Counting matches
 ***** Theoretical justifications
 
