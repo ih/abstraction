@@ -2253,8 +2253,8 @@ Adding knowledge of the parent AbstractionSet will make access to siblings easie
 #+end_src
 
 AbstractionSet's insert function takes an abstraction and has it descend into the hierarchy until it reaches a point where it is not contained in any children sets.
-#+name: abstraction_set
-#+begin_src python :noweb yes :tangle yes
+#+name: abstraction_set_deprecated
+#+begin_src python :noweb yes :tangle no
   class AbstractionSet:
       def __init__(self, abstraction, elements=set([])):
           #set of AbstractionSets
@@ -2274,13 +2274,47 @@ AbstractionSet's insert function takes an abstraction and has it descend into th
 
 #+name: abstraction_set_insert
 #+begin_src python :noweb yes
-
+  if self.contains(abstraction_set):
+      if any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
+              self.elements]):
+          return True
+      else:
+          self.elements.add(abstraction_set)
+  else:
+      return False
 #+end_src
+
+The definition of insert relies on being able to determine whether one AbstractionSet contains another.  This isn't part of our interface yet so lets add it.
+
+#+name: abstraction_set
+#+begin_src python :noweb yes :tangle yes
+  class AbstractionSet:
+      def __init__(self, abstraction, elements=set([])):
+          #set of AbstractionSets
+          self.elements = elements
+          self.abstraction = abstraction
+  
+      def contains(abstraction_set):
+          <<abstraction_set_contains>>
+  
+      def get_children():
+          return self.elements
+  
+      def insert(abstraction_set):
+          <<abstraction_set_insert>>
+  
+      def __str__(self):
+          return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements])
+  
+#+end_src
+
+Checking whether one AbstractionSet contains another can be done by matching the abstractions
+
 
 
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
 
-#+name: 
+#+name: create_new_abstractions
 #+begin_src python :noweb yes
 
 #+end_src
