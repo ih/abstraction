@@ -2251,7 +2251,7 @@ Adding knowledge of the parent AbstractionSet will make access to siblings easie
   [abstraction_set.insert(new_data_abstraction_set) for abstraction_set in new_data_abstraction_set]
   create_new_abstractions_and_reorganize(new_data_abstraction_set)
 #+end_src
-
+********** AbstractionSet Insertion Implementation
 AbstractionSet's insert function takes an abstraction and has it descend into the hierarchy until it reaches a point where it is not contained in any children sets.
 #+name: abstraction_set_deprecated
 #+begin_src python :noweb yes :tangle no
@@ -2280,6 +2280,7 @@ AbstractionSet's insert function takes an abstraction and has it descend into th
           return True
       else:
           self.elements.add(abstraction_set)
+          return True
   else:
       return False
 #+end_src
@@ -2294,19 +2295,20 @@ The definition of insert relies on being able to determine whether one Abstracti
           self.elements = elements
           self.abstraction = abstraction
   
-      def contains(abstraction_set):
+      def contains(self, abstraction_set):
           <<abstraction_set_contains>>
   
       def get_children():
           return self.elements
   
-      def insert(abstraction_set):
+      def insert(self, abstraction_set):
           <<abstraction_set_insert>>
   
       def __str__(self):
           return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements])
   
 #+end_src
+
 
 How can you tell if one AbstrationSet contains another?  Let's look at some examples.  
 
@@ -2338,9 +2340,40 @@ In order to implement contains we'll need to idenitify the variables of an abstr
 #+RESULTS:
 : get_variables([[1, 'v0'], 'v1']) => set(['v0', 'v1'])
 
+Now to check whether one AbstractionSet contains another we need only perform a match where the hypothesized containing set is the first argument and see if the keys are exactly the variables of the variables of the hypothesized constraining abstraction (TODO justify this).
 
+#+name: abstraction_set_contains
+#+begin_src python :noweb yes
+  binding = match(self.abstraction, abstraction_set.abstraction)
+  return binding is not None and set(binding.keys()) == get_variables(self.abstraction)
+#+end_src
 
+Now let's run a few tests to see if the function works correctly.
 
+#+name: test_contains
+#+begin_src python :noweb yes :results output
+  from abstraction import *
+  from utility import *
+  
+  print_and_assert("[[1, 'v0'], 'v1'] contains [[1, 1, 'v9', 0, 0, 'v10'], 1]", equal,
+                   AbstractionSet(abstraction=[[1, 'v0'], 'v1']).contains(AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1])), True)
+  
+  print_and_assert("[[1, 1, 'v9', 0, 0, 'v10'], 1] contains [[1, 'v0'], 'v1']", equal,
+                   AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1]).contains(AbstractionSet(abstraction=[[1, 'v0'], 'v1'])), False)
+#+end_src
+
+#+RESULTS: test_contains
+: [[1, 'v0'], 'v1'] contains [[1, 1, 'v9', 0, 0, 'v10'], 1] => True
+: [[1, 1, 'v9', 0, 0, 'v10'], 1] contains [[1, 'v0'], 'v1'] => False
+
+At this point we can test AbstractionSet's insert by following the example we did by hand earlier.
+
+#+name: test_abstraction_set_insert
+#+begin_src python :noweb yes
+
+#+end_src
+
+********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
 
 #+name: create_new_abstractions
