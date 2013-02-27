@@ -2305,7 +2305,7 @@ The definition of insert relies on being able to determine whether one Abstracti
           <<abstraction_set_insert>>
   
       def __str__(self):
-          return ('%s, %s') % (str(self.abstraction), [str(element) for element in self.elements])
+          return '(%s, %s)' % (str(self.abstraction), [str(element) for element in self.elements])
   
 #+end_src
 
@@ -2372,16 +2372,17 @@ At this point we can test AbstractionSet's insert by following the example we di
 #+begin_src python :noweb yes :results output :tangle test_abstraction_set.py
   from abstraction import *
   from utility import *
-  
-  root = AbstractionSet(abstraction=[[1, 'v0'], 'v1'])
+  #note all AbstractionSet's created without the elements specified will share the same set object
+  root = AbstractionSet(abstraction=[[1, 'v0'], 'v1'], elements=set([]))
   print root
-  print root.insert(AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1]))
-  #print root
+  print root.insert(AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1], elements=set([])))
+  print root
 #+end_src
-
+DEBUG: look at the difference between this and abstraction_set_example1.py (use of add vs explicit creation of set)
 #+RESULTS: test_abstraction_set_insert
-: [[1, 'v0'], 'v1'], []
+: ([[1, 'v0'], 'v1'], [])
 : True
+: ([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], [])"])
 
 ********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
