@@ -2377,12 +2377,19 @@ At this point we can test AbstractionSet's insert by following the example we di
   print root
   print root.insert(AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1], elements=set([])))
   print root
+  print root.insert(AbstractionSet(abstraction=[[1, 1, 1, 0, 0, 0], 1], elements=set([])))
+  print root
+  
 #+end_src
 DEBUG: look at the difference between this and abstraction_set_example1.py (use of add vs explicit creation of set)
 #+RESULTS: test_abstraction_set_insert
 : ([[1, 'v0'], 'v1'], [])
 : True
 : ([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], [])"])
+: True
+: ([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])'])"])
+
+Sometimes match([[1, 1, 'v9', 0, 0, 'v10'], 1], [[1, 1, 1, 0, 0, 0], 1]) returns None, why?  What should be done if the hierarchical structure is affected by a mismatch?
 
 ********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
