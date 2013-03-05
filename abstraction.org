@@ -2405,7 +2405,8 @@ At this point we can test AbstractionSet's insert by following the example we di
 
 Sometimes match([[1, 1, 'v9', 0, 0, 'v10'], 1], [[1, 1, 1, 0, 0, 0], 1]) returns None, why?
 It can happen when v9 binds to the subsection 1,0,0.  In this event the 0 before v10 has nothing to bind to.
- What should be done if the hierarchical structure is affected by a mismatch?
+
+What should be done if the hierarchical structure is affected by a mismatch?
 
 ********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
