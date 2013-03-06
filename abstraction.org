@@ -2388,25 +2388,23 @@ At this point we can test AbstractionSet's insert by following the example we di
                    root.insert(AbstractionSet(abstraction=[[1, 1, 1, 0, 0, 0], 1], elements=set([]))), True)
   print_and_assert('root', equal,
                    str(root), """([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])'])"])""")
-
-
-  print [match([1, 1, 'v9', 0, 0, 'v10'], [1, 1, 1, 0, 0, 0]) for i in range(10)]
-
-  
+  root.insert(AbstractionSet(abstraction=[[1, 1, 0, 0], 1], elements=set([])))
+  print_and_assert('root.insert(AbstractionSet(abstraction=[[1, 1, 0, 0], 1], elements=set([])))', equal,
+                   str(root),"""([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])', '([[1, 1, 0, 0], 1], [])'])"])""")
+  root.insert(AbstractionSet(abstraction=[[1, 'v0'], 0], elements=set([])))
+  print_and_assert('root', equal,
+                   str(root), """([[1, 'v0'], 'v1'], ["([[1, 'v0'], 0], [])", "([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])', '([[1, 1, 0, 0], 1], [])'])"])""")
+  root.insert(AbstractionSet(abstraction=[[1], 0], elements=set([])))
+  print root
 #+end_src
 
 #+RESULTS: test_abstraction_set_insert
-: ([[1, 'v0'], 'v1'], [])
-: True
-: ([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], [])"])
-: True
-: ([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])'])"])
 
 
 Sometimes match([[1, 1, 'v9', 0, 0, 'v10'], 1], [[1, 1, 1, 0, 0, 0], 1]) returns None, why?
 It can happen when v9 binds to the subsection 1,0,0.  In this event the 0 before v10 has nothing to bind to.
 
-What should be done if the hierarchical structure is affected by a mismatch?
+What should be done if the hierarchical structure is affected by a mismatch?  For now let's accept we might have a non-optimal structure and understand as we improve match the structure should be more consistent.
 
 ********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
