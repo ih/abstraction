@@ -2389,6 +2389,7 @@ At this point we can test AbstractionSet's insert by following the example we di
   print_and_assert('root', equal,
                    str(root), """([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])'])"])""")
   root.insert(AbstractionSet(abstraction=[[1, 1, 0, 0], 1], elements=set([])))
+  print root
   print_and_assert('root.insert(AbstractionSet(abstraction=[[1, 1, 0, 0], 1], elements=set([])))', equal,
                    str(root),"""([[1, 'v0'], 'v1'], ["([[1, 1, 'v9', 0, 0, 'v10'], 1], ['([[1, 1, 1, 0, 0, 0], 1], [])', '([[1, 1, 0, 0], 1], [])'])"])""")
   root.insert(AbstractionSet(abstraction=[[1, 'v0'], 0], elements=set([])))
@@ -2407,11 +2408,23 @@ It can happen when v9 binds to the subsection 1,0,0.  In this event the 0 before
 What should be done if the hierarchical structure is affected by a mismatch?  For now let's accept we might have a non-optimal structure and understand as we improve match the structure should be more consistent.
 
 ********** Create New Abstractions
-The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then make place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
+The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
 
 #+name: create_new_abstractions
 #+begin_src python :noweb yes
-
+  def create_new_abstractions_and_reorganize(abstraction_set):
+      siblings = get_siblings(abstraction_set)
+      parent = get_parent(abstraction_set)
+      for sibling in siblings:
+          new_abstraction = abstract(sibling.abstraction, abstraction_set.abstraction)
+          if new_abstraction:
+              #reorganize
+              new_abstraction_set = AbstractionSet(abstraction=new_abstraction,
+                                                   elements=set([sibling, abstraction_set]))
+              parent.elements.remove(sibling)
+              parent.elements.remove(abstraction_set)
+              parent.elements.add(new_abstraction_set)
+              create_new_abstractions_and_reorganize(new_abstraction_set)
 #+end_src
 
 
