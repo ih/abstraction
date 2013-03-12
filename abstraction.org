@@ -2251,7 +2251,7 @@ What happens if there are multiple top-level abstraction sets and new data can g
 
 Adding knowledge of the parent AbstractionSet will make access to siblings easier, which is useful when creating abstractions by merging siblings.  Will an abstraction set ever have more than one parent?  It's easy enough to implement for multiple possible parents.
 
-#+name: memory_add
+#+name: memory_add_deprecated
 #+begin_src python :noweb yes
   new_data_abstraction_set = AbstractionSet(new_data)
   [abstraction_set.insert(new_data_abstraction_set) for abstraction_set in new_data_abstraction_set]
@@ -2293,7 +2293,7 @@ AbstractionSet's insert function takes an abstraction and has it descend into th
 
 The definition of insert relies on being able to determine whether one AbstractionSet contains another.  This isn't part of our interface yet so lets add it.
 
-#+name: abstraction_set
+#+name: abstraction_set_deprecated
 #+begin_src python :noweb yes :tangle yes
   class AbstractionSet:
       def __init__(self, abstraction, elements=set([])):
@@ -2410,11 +2410,11 @@ What should be done if the hierarchical structure is affected by a mismatch?  Fo
 ********** Create New Abstractions
 The function create_new_abstractions will create attempt to create a new abstraction using the passed in argument with its siblings.  It will then place the newly created abstraction between the abstractions used to create it and their parent.  The function will then be called again with the new abstraction as an argument (?)
 
-#+name: create_new_abstractions
+#+name: create_new_abstractions_deprecated
 #+begin_src python :noweb yes
   def create_new_abstractions_and_reorganize(abstraction_set):
-      siblings = get_siblings(abstraction_set)
       parent = get_parent(abstraction_set)
+      siblings = get_siblings(abstraction_set)
       for sibling in siblings:
           new_abstraction = abstract(sibling.abstraction, abstraction_set.abstraction)
           if new_abstraction:
@@ -2427,7 +2427,66 @@ The function create_new_abstractions will create attempt to create a new abstrac
               create_new_abstractions_and_reorganize(new_abstraction_set)
 #+end_src
 
+Initially create_new_abstractions_and_reorganize was introduced in memory_add as a "free" function, but it seems like it would make more sense as a method of abstraction set so let's make the necessary adjustments.
 
+#+name: memory_add
+#+begin_src python :noweb yes
+  new_data_abstraction_set = AbstractionSet(new_data)
+  [abstraction_set.insert(new_data_abstraction_set) for abstraction_set in new_data_abstraction_set]
+  new_data_abstraction_set.create_new_abstractions_and_reorganize()
+#+end_src
+
+While we're at it let's make get_parent and get_siblings methods of AbstractionSet
+
+#+name: create_new_abstractions
+#+begin_src python :noweb yes
+  parent = self.get_parent(abstraction_set)
+  siblings = self.get_siblings(abstraction_set)
+  for sibling in siblings:
+      new_abstraction = abstract(sibling.abstraction, abstraction_set.abstraction)
+      if new_abstraction:
+          #reorganize
+          new_abstraction_set = AbstractionSet(abstraction=new_abstraction,
+                                               elements=set([sibling, abstraction_set]))
+          parent.elements.remove(sibling)
+          parent.elements.remove(abstraction_set)
+          parent.elements.add(new_abstraction_set)
+          create_new_abstractions_and_reorganize(new_abstraction_set)
+#+end_src
+
+and update the class definition based on these changes.  Actually before we make this change, can abstractions have multiple parents? [OP] Let's assume not in this version to keep things moving forward and for simplicity.  How does parent get initialized?
+
+#+name: abstraction_set
+#+begin_src python :noweb yes :tangle no
+  class AbstractionSet:
+      def __init__(self, abstraction, elements=set([])):
+          #set of AbstractionSets
+          self.elements = elements
+          self.abstraction = abstraction
+  
+      def get_parent(self):
+          return self.parent
+  
+      def get_children(self):
+          return self.elements
+  
+      def insert(self, abstraction_set):
+          <<abstraction_set_insert>>
+  
+      def create_new_abstractions_and_reorganize(self):
+          <<create_new_abstractions>>
+  
+      def __str__(self):
+          return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements])
+  
+#+end_src
+
+
+
+#+name: get_siblings
+#+begin_src python :noweb yes
+
+#+end_src
 ***** Counting matches
 ***** Theoretical justifications
 
