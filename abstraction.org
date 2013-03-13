@@ -2278,7 +2278,7 @@ AbstractionSet's insert function takes an abstraction and has it descend into th
   
 #+end_src
 
-#+name: abstraction_set_insert
+#+name: abstraction_set_insert_deprecated
 #+begin_src python :noweb yes
   if self.contains(abstraction_set):
       if any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
@@ -2294,7 +2294,7 @@ AbstractionSet's insert function takes an abstraction and has it descend into th
 The definition of insert relies on being able to determine whether one AbstractionSet contains another.  This isn't part of our interface yet so lets add it.
 
 #+name: abstraction_set_deprecated
-#+begin_src python :noweb yes :tangle yes
+#+begin_src python :noweb yes :tangle no
   class AbstractionSet:
       def __init__(self, abstraction, elements=set([])):
           #set of AbstractionSets
@@ -2455,17 +2455,22 @@ While we're at it let's make get_parent and get_siblings methods of AbstractionS
 #+end_src
 
 and update the class definition based on these changes.  Actually before we make this change, can abstractions have multiple parents? [OP] Let's assume not in this version to keep things moving forward and for simplicity.  How does parent get initialized?
+We set the parent to None initially.  Setting it to an empty AbstractionSet by default doesn't make sense since there will be an infinite recursion where the empty AbstractionSet's parent will also be an empty AbstractionSet and so on.
 
 #+name: abstraction_set
-#+begin_src python :noweb yes :tangle no
+#+begin_src python :noweb yes :tangle yes
   class AbstractionSet:
-      def __init__(self, abstraction, elements=set([])):
+      def __init__(self, abstraction, elements=set([]), parent=None):
           #set of AbstractionSets
           self.elements = elements
           self.abstraction = abstraction
+          self.parent = parent
   
       def get_parent(self):
           return self.parent
+  
+      def get_siblings(self):
+          <<abstraction_set_get_siblings>>
   
       def get_children(self):
           return self.elements
@@ -2481,10 +2486,35 @@ and update the class definition based on these changes.  Actually before we make
   
 #+end_src
 
+Now that we're keeping track of the parent, we need to adjust insert to set this property when adding one AbstractionSet to another
 
-
-#+name: get_siblings
+#+name: abstraction_set_insert
 #+begin_src python :noweb yes
+  if self.contains(abstraction_set):
+      if any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
+              self.elements]):
+          return True
+      else:
+          self.elements.add(abstraction_set)
+          return True
+  else:
+      return False
+#+end_src
+
+
+
+Getting the siblings is just a matter of looking at the parent's children minus the calling AbstractionSet.
+
+#+name: abstraction_set_get_siblings
+#+begin_src python :noweb yes 
+  if self.parent is not None:
+      return self.parent.get_children() - set([self])
+  else:
+      return set([])
+#+end_src
+
+#+name: test_abstraction_set_get_siblings
+#+begin_src python :noweb yes :tangle test_abstraction_set.py
 
 #+end_src
 ***** Counting matches
