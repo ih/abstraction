@@ -2466,6 +2466,9 @@ We set the parent to None initially.  Setting it to an empty AbstractionSet by d
           self.abstraction = abstraction
           self.parent = parent
   
+      def contains(self, abstraction_set):
+          <<abstraction_set_contains>>
+          
       def get_parent(self):
           return self.parent
   
@@ -2482,7 +2485,7 @@ We set the parent to None initially.  Setting it to an empty AbstractionSet by d
           <<create_new_abstractions>>
   
       def __str__(self):
-          return '%s, %s' % (str(self.abstraction), [str(element) for element in self.elements])
+          return '(%s, %s)' % (str(self.abstraction), [str(element) for element in self.elements])
   
 #+end_src
 
@@ -2496,12 +2499,14 @@ Now that we're keeping track of the parent, we need to adjust insert to set this
           return True
       else:
           self.elements.add(abstraction_set)
+          abstraction_set.parent = self
           return True
   else:
       return False
+  
 #+end_src
 
-
+Let's make sure this works by looking at the output
 
 Getting the siblings is just a matter of looking at the parent's children minus the calling AbstractionSet.
 
