@@ -2506,8 +2506,6 @@ Now that we're keeping track of the parent, we need to adjust insert to set this
   
 #+end_src
 
-Let's make sure this works by looking at the output
-
 Getting the siblings is just a matter of looking at the parent's children minus the calling AbstractionSet.
 
 #+name: abstraction_set_get_siblings
@@ -2520,8 +2518,20 @@ Getting the siblings is just a matter of looking at the parent's children minus 
 
 #+name: test_abstraction_set_get_siblings
 #+begin_src python :noweb yes :tangle test_abstraction_set.py
-
+  #sibling test
+  parent = AbstractionSet(abstraction=[[1, 'v0'], 'v1'], elements=set([]))
+  child1 = AbstractionSet(abstraction=[[1, 1, 'v9', 0, 0, 'v10'], 1], elements=set([]))
+  child2 = AbstractionSet(abstraction=[[1, 'v0'], 0], elements=set([]))
+  parent.insert(child1)
+  parent.insert(child2)
+  
+  print [str(sibling) for sibling in  child1.get_siblings()]
+  print [str(sibling) for sibling in  child2.get_siblings()]
+  
 #+end_src
+
+#+RESULTS: test_abstraction_set_get_siblings
+
 ***** Counting matches
 ***** Theoretical justifications
 
