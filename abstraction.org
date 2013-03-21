@@ -2525,12 +2525,15 @@ Getting the siblings is just a matter of looking at the parent's children minus 
   parent.insert(child1)
   parent.insert(child2)
   
-  print [str(sibling) for sibling in  child1.get_siblings()]
-  print [str(sibling) for sibling in  child2.get_siblings()]
+  print_and_assert('[str(sibling) for sibling in  child1.get_siblings()]', equal, [str(sibling) for sibling in  child1.get_siblings()], """["([[1, 'v0'], 0], [])"]""")
+  print_and_assert('[str(sibling) for sibling in  child2.get_siblings()]', equal, [str(sibling) for sibling in  child2.get_siblings()], """["([[1, 1, 'v9', 0, 0, 'v10'], 1], [])"]""")
   
 #+end_src
 
 #+RESULTS: test_abstraction_set_get_siblings
+
+Perhaps create_new_abstractions_and_reorganize should insert the new abstraction and let it settle to its' rightful position.  This addresses the possible concern of a new abstraction being more general than the parent of the data that were abstracted from.
+
 
 ***** Counting matches
 ***** Theoretical justifications
