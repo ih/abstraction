@@ -2438,7 +2438,7 @@ Initially create_new_abstractions_and_reorganize was introduced in memory_add as
 
 While we're at it let's make get_parent and get_siblings methods of AbstractionSet
 
-#+name: create_new_abstractions
+#+name: create_new_abstractions_deprecated
 #+begin_src python :noweb yes
   parent = self.get_parent(abstraction_set)
   siblings = self.get_siblings(abstraction_set)
@@ -2457,7 +2457,7 @@ While we're at it let's make get_parent and get_siblings methods of AbstractionS
 and update the class definition based on these changes.  Actually before we make this change, can abstractions have multiple parents? [OP] Let's assume not in this version to keep things moving forward and for simplicity.  How does parent get initialized?
 We set the parent to None initially.  Setting it to an empty AbstractionSet by default doesn't make sense since there will be an infinite recursion where the empty AbstractionSet's parent will also be an empty AbstractionSet and so on.
 
-#+name: abstraction_set
+#+name: abstraction_set_deprecated
 #+begin_src python :noweb yes :tangle yes
   class AbstractionSet:
       def __init__(self, abstraction, elements=set([]), parent=None):
@@ -2534,10 +2534,59 @@ Getting the siblings is just a matter of looking at the parent's children minus 
 
 Perhaps create_new_abstractions_and_reorganize should insert the new abstraction and let it settle to its' rightful position.  This addresses the possible concern of a new abstraction being more general than the parent of the data that were abstracted from.
 
+#+name: create_new_abstractions
+#+begin_src python :noweb yes
+  parent = self.get_parent(abstraction_set)
+  siblings = self.get_siblings(abstraction_set)
+  for sibling in siblings:
+      new_abstraction = abstract(sibling.abstraction, abstraction_set.abstraction)
+      if new_abstraction:
+          #reorganize
+          new_abstraction_set = AbstractionSet(abstraction=new_abstraction,
+                                               elements=set([sibling, abstraction_set]))
+          self.root.insert(new_abstraction_set)
+#+end_src
+
+In a more general case is it possible to have multiple roots [OP]?  Here we modified create_new_abstractions to insert new abstractions at the root.  We'll need to modify AbstractionSets to keep track of the root.
+
+#+name: abstraction_set
+#+begin_src python :noweb yes :tangle yes
+  class AbstractionSet:
+      def __init__(self, abstraction, elements=set([]), parent=None, root=None):
+          #set of AbstractionSets
+          self.elements = elements
+          self.abstraction = abstraction
+          self.parent = parent
+          self.root = root
+  
+      def contains(self, abstraction_set):
+          <<abstraction_set_contains>>
+          
+      def get_parent(self):
+          return self.parent
+  
+      def get_siblings(self):
+          <<abstraction_set_get_siblings>>
+  
+      def get_children(self):
+          return self.elements
+  
+      def insert(self, abstraction_set):
+          <<abstraction_set_insert>>
+  
+      def create_new_abstractions_and_reorganize(self):
+          <<create_new_abstractions>>
+  
+      def __str__(self):
+          return '(%s, %s)' % (str(self.abstraction), [str(element) for element in self.elements])
+  
+#+end_src
+
 
 ***** Counting matches
 ***** Theoretical justifications
-
+* Literate Programming 
+While literate programming is nice as a way to force thinking through some aspects of a program more deeply the slowdown is pace does not seem to justify the benefits.  One of the main difficulties arises from modifying existing code while still keeping the narrative.  For this reason development will continue in a more traditional fashion and this document will be use for high level notes only.
 
 
 
