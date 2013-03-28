@@ -247,6 +247,9 @@ class AbstractionSet:
         self.abstraction = abstraction
         self.parent = parent
         self.root = root
+        if self.root is None:
+            self.root = self
+
 
     def contains(self, abstraction_set):
         binding = match(self.abstraction, abstraction_set.abstraction)
