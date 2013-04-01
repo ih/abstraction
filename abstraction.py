@@ -1,4 +1,4 @@
-
+import pdb
 class InferenceProblem:
     #variables that might appear in partial_data
     variables = []
@@ -282,14 +282,15 @@ class AbstractionSet:
 
 
     def create_new_abstractions_and_reorganize(self):
-        parent = self.get_parent(abstraction_set)
-        siblings = self.get_siblings(abstraction_set)
+        parent = self.get_parent()
+        siblings = self.get_siblings()
         for sibling in siblings:
-            new_abstraction = abstract(sibling.abstraction, abstraction_set.abstraction)
+            new_abstraction = abstract(sibling.abstraction, self.abstraction)
+            pdb.set_trace()
             if new_abstraction:
                 #reorganize
                 new_abstraction_set = AbstractionSet(abstraction=new_abstraction,
-                                                     elements=set([sibling, abstraction_set]))
+                                                     elements=set([sibling, self]))
                 self.root.insert(new_abstraction_set)
 
     def __str__(self):
