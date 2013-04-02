@@ -45,7 +45,7 @@ def test_create_new_abstractions_and_reorganize():
     root.insert(first)
     root.insert(second)
     second.create_new_abstractions_and_reorganize()
+    print_and_assert('inserting [[1], 0] and [[1, 1], 0]', equal, str(root), """(['v0'], ["([[1, 'v0'], 0], ['([[1, 1], 0], [])', '([[1], 0], [])'])"])""")
 
 
 test_create_new_abstractions_and_reorganize()
-#(['v0'], ["([[1, 'v0'], 0], ['([[1, 1], 0], [])', '([[1], 0], [])'])", '([[1, 1], 0], [])', '([[1], 0], [])'])
