@@ -276,6 +276,12 @@ class AbstractionSet:
                 self.elements.add(abstraction_set)
                 abstraction_set.parent = self
                 abstraction_set.root = self.root
+                #see if any siblings should be moved into the new abstraction_set and adjust the
+                #links if necessary
+                siblings = abstraction_set.get_siblings()
+                for sibling in siblings:
+                    if abstraction_set.insert(sibling):
+                        self.elements.remove(sibling)   
                 return True
         else:
             return False
@@ -286,11 +292,11 @@ class AbstractionSet:
         siblings = self.get_siblings()
         for sibling in siblings:
             new_abstraction = abstract(sibling.abstraction, self.abstraction)
-            pdb.set_trace()
             if new_abstraction:
                 #reorganize
+                #elements for new_abstraction_set will be set during insertion
                 new_abstraction_set = AbstractionSet(abstraction=new_abstraction,
-                                                     elements=set([sibling, self]))
+                                                     elements=set([]))
                 self.root.insert(new_abstraction_set)
 
     def __str__(self):
