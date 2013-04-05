@@ -46,6 +46,17 @@ def test_create_new_abstractions_and_reorganize():
     root.insert(second)
     second.create_new_abstractions_and_reorganize()
     print_and_assert('inserting [[1], 0] and [[1, 1], 0]', equal, str(root), """(['v0'], ["([[1, 'v0'], 0], ['([[1, 1], 0], [])', '([[1], 0], [])'])"])""")
-
-
+    third = AbstractionSet([[1,1,1,1,1], 0], set([]))
+    root.insert(third)
+    third.create_new_abstractions_and_reorganize()
+    print root
+    fourth = AbstractionSet([[1,1,0,0],1], set([]))
+    root.insert(fourth)
+    fourth.create_new_abstractions_and_reorganize()
+    print 'inserted fourth: %s' % root
+    fifth = AbstractionSet([[1,1,1,0,0,0],1], set([]))
+    root.insert(fifth)
+    print 'inserted fifth: %s' % root
+    fifth.create_new_abstractions_and_reorganize()
+    print 'created new abstraction via fifth %s' % root 
 test_create_new_abstractions_and_reorganize()
