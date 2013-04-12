@@ -281,7 +281,7 @@ class AbstractionSet:
                 siblings = abstraction_set.get_siblings()
                 for sibling in siblings:
                     if abstraction_set.insert(sibling):
-                        self.elements.remove(sibling)   
+                        self.elements.remove(sibling)
                 return True
         else:
             return False
@@ -301,3 +301,14 @@ class AbstractionSet:
 
     def __str__(self):
         return '(%s, %s)' % (str(self.abstraction), [str(element) for element in self.elements])
+
+    def pretty_print(self):
+        print self.pretty_hierarchy(0)
+
+    def pretty_hierarchy(self, level):
+        output = '\n'
+        output += '*' * level
+        output += ' %s' % self.abstraction
+        for element in self.elements:
+            output += element.pretty_hierarchy(level+1)
+        return output

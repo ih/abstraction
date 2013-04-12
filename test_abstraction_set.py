@@ -49,14 +49,29 @@ def test_create_new_abstractions_and_reorganize():
     third = AbstractionSet([[1,1,1,1,1], 0], set([]))
     root.insert(third)
     third.create_new_abstractions_and_reorganize()
-    print root
+    root.pretty_print()
     fourth = AbstractionSet([[1,1,0,0],1], set([]))
     root.insert(fourth)
     fourth.create_new_abstractions_and_reorganize()
-    print 'inserted fourth: %s' % root
+    #print 'inserted fourth: %s' % root
+    print 'inserted fourth'
+    root.pretty_print()
     fifth = AbstractionSet([[1,1,1,0,0,0],1], set([]))
     root.insert(fifth)
-    print 'inserted fifth: %s' % root
+    print 'inserted fifth'
+    root.pretty_print()
+    pdb.set_trace()
     fifth.create_new_abstractions_and_reorganize()
-    print 'created new abstraction via fifth %s' % root 
+    print 'created new abstraction via fifth'
+    root.pretty_print()
+
+def test_pretty_hierarchy():
+    level1 = AbstractionSet(['v0'], set([]))
+    print level1.pretty_hierarchy(0)
+    first = AbstractionSet([[1], 0], set([]))
+    second = AbstractionSet([[1, 1], 0], set([]))
+    level2 = AbstractionSet(['v0'], set([first, second]))
+    print level2.pretty_hierarchy(0)
+
 test_create_new_abstractions_and_reorganize()
+#test_pretty_hierarchy()
