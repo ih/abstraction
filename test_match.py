@@ -27,12 +27,14 @@ abstraction = [[1, 1, 'v0', 0, 0, 'v1'], 1]
 print match(abstraction, pattern1[0])
 print match(abstraction, pattern1[1])
 
-for i in range(10):
-    #a case where this algorithm can fail to find the existing valid binding
-    test4 = match(['v0', 0], [1,0,1,0,1,0,0])
-    print test4
-    assert(test4 in [None, {'v0': [1, 0, 1, 0, 1, 0]}])
-
+def fail_case():
+    print 'case where algorithm can fail'
+    for i in range(10):
+        #a case where this algorithm can fail to find the existing valid binding
+        test4 = match(['v0', 0], [1,0,1,0,1,0,0])
+        print test4
+        assert(test4 in [None, {'v0': [1, 0, 1, 0, 1, 0]}])
+    
 #the abstraction f
 f = [[1, 'v0'], 'v1']
 test5 = match(f, [[1,1],0])
@@ -80,3 +82,6 @@ for pattern in pattern1:
         print '%s,%s =>' % (abstraction, pattern)
         print match(abstraction, pattern)
         print '\n'
+
+
+fail_case()

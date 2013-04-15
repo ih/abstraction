@@ -1,4 +1,7 @@
 import pdb
+
+RETRY_AMOUNT = 10
+
 class InferenceProblem:
     #variables that might appear in partial_data
     variables = []
@@ -83,6 +86,9 @@ class VariableGenerator:
 variable_generator = VariableGenerator()
 
 def match(data1, data2):
+    return match_with_retries(data1, data2, RETRY_AMOUNT)
+
+def match_with_retries(data1, data2, retries):
     if is_variable(data1):
         return {data1: data2}
     elif is_variable(data2):
@@ -91,7 +97,10 @@ def match(data1, data2):
         if data1 == data2:
             return {}
         else:
-            return None
+            if retries > 0:
+                return match_with_retries(data1, data2, retries-1)
+            else:
+                return None
     else:
         assert(isinstance(data1, list) and isinstance(data2, list))
         #using a dictionary b/c has reference passed into functions allowing changes to be permanent after
@@ -135,9 +144,15 @@ def match(data1, data2):
             elif data2_position < len(data2) and is_variable(data2[data2_position]):
                 matches.append({data2[data2_position]: []})
             else:
-                return None
+                if retries > 0:
+                    return match_with_retries(data1, data2, retries-1)
+                else:
+                    return None
         if None in matches:
-            return None
+            if retries > 0:
+                return match_with_retries(data1, data2, retries-1)
+            else:
+                return None
         else:
             #TODO handle case of same variable appearing in multiple places in the list
             all_bindings = {}
