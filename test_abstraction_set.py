@@ -60,7 +60,7 @@ def test_create_new_abstractions_and_reorganize():
     root.insert(fifth)
     print 'inserted fifth'
     root.pretty_print()
-    pdb.set_trace()
+    #pdb.set_trace()
     fifth.create_new_abstractions_and_reorganize()
     print 'created new abstraction via fifth'
     root.pretty_print()
