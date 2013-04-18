@@ -1,6 +1,17 @@
 * Journal
+** 2013-4-17
+1) First write a function to check whether two abstractions are the same
+2) Modify insert to return false if abstraction_set has same abstraction as self
+
+*** equality for two abstractions
+call match if the bindings are all variable to variable the abstractions are equal otherwise they are not
+
+Need to test is_equivalent
+
 ** 2013-4-15
 Add a parameter for number of tries to match (make current match a helper function).  Any time something is returned do a branch if the value being returned is None and tries is > 0 return match with the original arguments, but tries decremented by 1, else return whatever was going to be returned
+
+Seems to work fine, definitely lowering the number of times match returns None.  Next up removing/preventing duplicate abstractions.
 ** 2013-4-12
 Made an easier to look at representation of AbstractionSet.  [TODO] Duplicate abstractions should be detected and removed/never be inserted.  It appears the problem is match between [[1, 1, 'v5', 0, 0, 'v6'], 1] and [[1, 1, 0, 0], 1] sometimes returns None.  Perhaps match should automatically repeat n times if none is returned to lower the chance of false negatives.
 * Motivation

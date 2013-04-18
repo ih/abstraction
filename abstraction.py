@@ -35,6 +35,12 @@ import random
 def is_symbol(thing):
     return not isinstance(thing, list)
 
+def is_equivalent(abstraction1, abstraction2):
+    var bindings = match(abstraction1, abstraction2)
+    #check if all bindings are single variables
+    return all([is_variable(bound_value) for bound_value in bindings.values])
+
+
 def abstract(data1, data2):
     if not isinstance(data1, list) or not isinstance(data2, list):
         if data1 == data2:
