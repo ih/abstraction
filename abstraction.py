@@ -36,9 +36,13 @@ def is_symbol(thing):
     return not isinstance(thing, list)
 
 def is_equivalent(abstraction1, abstraction2):
-    var bindings = match(abstraction1, abstraction2)
+    bindings = match(abstraction1, abstraction2)
     #check if all bindings are single variables
-    return all([is_variable(bound_value) for bound_value in bindings.values])
+    try:
+        return all([is_variable(bound_values[0]) for bound_values
+                    in bindings.values()])
+    except IndexErrror:
+        return False
 
 
 def abstract(data1, data2):
