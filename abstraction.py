@@ -41,7 +41,7 @@ def is_equivalent(abstraction1, abstraction2):
     try:
         return all([is_variable(bound_values[0]) for bound_values
                     in bindings.values()])
-    except IndexErrror:
+    except (IndexError, AttributeError):
         return False
 
 
@@ -293,7 +293,7 @@ class AbstractionSet:
         return self.elements
 
     def insert(self, abstraction_set):
-        if self.contains(abstraction_set):
+        if not is_equivalent(self.abstraction, abstraction_set.abstraction) and self.contains(abstraction_set):
             if any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
                     self.elements]):
                 return True

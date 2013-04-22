@@ -1,4 +1,8 @@
 * Journal
+** 2013-4-22
+Wrote some simple tests for is_equivalent in a file called test_abstraction_helpers.py, seems to work.  Might want to consider reorganizing code or renaming test_abstraction_helpers.py
+
+Modified insert to check for abstraction equivalence, but still appears to have equivalent abstractions in test_abstraction_set.py.  Look into this for next time.
 ** 2013-4-17
 1) First write a function to check whether two abstractions are the same
 2) Modify insert to return false if abstraction_set has same abstraction as self
