@@ -73,5 +73,7 @@ def test_pretty_hierarchy():
     level2 = AbstractionSet(['v0'], set([first, second]))
     print level2.pretty_hierarchy(0)
 
+
+
 test_create_new_abstractions_and_reorganize()
 #test_pretty_hierarchy()

@@ -294,7 +294,11 @@ class AbstractionSet:
 
     def insert(self, abstraction_set):
         if not is_equivalent(self.abstraction, abstraction_set.abstraction) and self.contains(abstraction_set):
-            if any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
+            if any([is_equivalent(child_abstraction_set.abstraction,
+                                  abstraction_set.abstraction)
+                    for child_abstraction_set in self.elements]):
+                return False
+            elif any([child_abstraction_set.insert(abstraction_set) for child_abstraction_set in
                     self.elements]):
                 return True
             else:

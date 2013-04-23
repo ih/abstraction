@@ -1,4 +1,10 @@
 * Journal
+** <2013-04-23 Tue 09:11>
+The problem with duplications in insert is it doesn't check the children.  So it may get inserted but be equivalent to one of the children.
+
+Fix is to check equivalence with all the children abstractions before trying to insert into the children recursively.
+
+Next up modify solve to take advantage of the tree structure.
 ** 2013-4-22
 Wrote some simple tests for is_equivalent in a file called test_abstraction_helpers.py, seems to work.  Might want to consider reorganizing code or renaming test_abstraction_helpers.py
 
