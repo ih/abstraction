@@ -263,7 +263,21 @@ def get_variables(partial_data):
     elif not isinstance(partial_data, list):
         return set([])
     else:
-        return set([]).union(*[get_variables(element) for element in partial_data])
+        return set([]).union(
+            *[get_variables(element) for element in partial_data])
+
+class Memory:
+    def __init__(self):
+        self.root = AbstractionSet(['v0'], set([]))
+
+    def add(self, new_data):
+        new_data_abstraction_set = AbstractionSet(new_data)
+        self.root.insert(new_data_abstraction_set)
+        new_data_abstraction_set.create_new_abstractions_and_reorganize()
+
+    def dump(self):
+        self.root.pretty_print()
+
 
 class AbstractionSet:
     def __init__(self, abstraction, elements=set([]), parent=None, root=None):

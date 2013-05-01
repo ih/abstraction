@@ -1,4 +1,10 @@
 * Journal
+** <2013-05-01 Wed 07:57>
+Turns out Agent.solve() is already implemented so currently testing it.
+
+Changed test_agent.py to not assert when printing the memory dump since it'd probably be a fairly brittle test.
+
+Modified memory to only have a root AbstractionSet consisting of a single variable instead of a list of AbstractionSets.  Need to modify solve accordingly.
 ** <2013-04-23 Tue 09:11>
 The problem with duplications in insert is it doesn't check the children.  So it may get inserted but be equivalent to one of the children.
 
