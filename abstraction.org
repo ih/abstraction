@@ -1,4 +1,8 @@
 * Journal
+** <2013-05-02 Thu 09:00>
+Stepped through solve on some simple inference problems and fixed up bugs. Working on limited cases.  
+
+Apply it to more inference problems to further test.
 ** <2013-05-01 Wed 07:57>
 Turns out Agent.solve() is already implemented so currently testing it.
 
