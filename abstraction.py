@@ -215,36 +215,45 @@ class Agent:
 
     def solve(self, inference_problem):
         def find_lowest_match(top_abstraction, inference_problem):
-
+            #go through the AbstractionSet hierarchy and add any leaf matches
+            #to a list leaves
             leaves = []
             def traverse(abstraction_set, depth):
-                match = abstraction.match(abstraction_set, inference_problem.partial_data)
-                if match == None:
+                binding = match(abstraction_set.abstraction,
+                                inference_problem.partial_data)
+                if binding == None:
                     return None
                 elif abstraction_set.get_children() == []:
-                    leaves.append((match, depth))
+                    leaves.append((binding, depth))
                     return True
                 else:
                     child_matches = [traverse(child_abstraction_set, depth+1) for child_abstraction_set
                                      in abstraction_set.get_children()]
                     if not any(child_matches):
-                        leaves.append(match, depth)
+                        leaves.append((binding, depth))
                         return True
                     else:
                         return None
 
             traverse(top_abstraction, 0)
-            sorted_leaves = sorted(leaves, key=lambda leaf: leaf[1])
-            for possible_match in sorted_leaves:
-                if all([is_primitive(possible_match[variable]) for variable in inference_problem.variables]):
-                    return possible_match
-            return sorted_leaves[0]
+            binding_depth_pairs = sorted(leaves, key=lambda leaf: leaf[1],
+                                         reverse=True)
+            #filter out "solutions" where the value for the unknown is made
+            #of non-variables
+            possible_solutions = []
 
-        possible_solutions = []
-        for top_abstraction in self.memory.top_abstractions:
-            possible_solutions.append(find_lowest_match(top_abstraction, inference_problem.partial_data))
-
-        return get_least_abstract_match(possible_solutions)
+            for possible_match in [pair[0] for pair in binding_depth_pairs]:
+                are_primitive_bindings = [not has_variables(possible_match[variable])
+                                          for variable in
+                                          inference_problem.variables
+                                          if variable in possible_match]
+                if are_primitive_bindings and all(are_primitive_bindings):
+                    possible_solutions.append(possible_match)
+            if possible_solutions:
+                return possible_solutions[0]
+            else:
+                return None
+        return find_lowest_match(self.memory.root, inference_problem)
 
     def solve_within(self, inference_problem, duration=None):
         start = time()
@@ -256,6 +265,9 @@ class Agent:
 
 def is_primitive(thing):
     return not is_variable(thing) and not isinstance(thing, list)
+
+def has_variables(thing):
+    return len(get_variables(thing)) > 0
 
 def get_variables(partial_data):
     if is_variable(partial_data):
