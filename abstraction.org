@@ -1,4 +1,25 @@
 * Journal
+** <2013-06-10 Mon 07:58>
+
+** <2013-05-14 Tue 07:33>
+Trying to solve  InferenceProblem(
+    ['x0'], [[1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0], 'x0'])
+
+when the memory structure is 
+
+ ['v0']
+- [[1, 1, 'v2'], 'v3']
+-- [[1, 1, 'v4'], 0]
+*** [[1, 1], 0]
+*** [[1, 1, 1, 1, 1], 0]
+-- [[1, 1, 'v0', 0, 0, 'v1'], 1]
+--- [[1, 1, 0, 0], 1]
+--- [[1, 1, 1, 0, 0, 0], 1]
+
+results in guessing 'x0' is 0 because it matches to [[1, 1, 'v4'], 0] which is at the same level as [[1, 1, 'v0', 0, 0, 'v1'], 1].
+
+When trying to classify patterns of type 1 the abstraction [[1, 1, 'v0', 0, 0, 'v1'], 1] is used, but match often doesn't line up 'v0' to 1s and 'v1' to 0s.  Need to figure out to match partial data to existing abstractions i.e. use named abstractions.  How would this solve the above problem?
+
 ** <2013-05-02 Thu 09:00>
 Stepped through solve on some simple inference problems and fixed up bugs. Working on limited cases.  
 

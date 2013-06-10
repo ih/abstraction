@@ -362,7 +362,7 @@ class AbstractionSet:
 
     def pretty_hierarchy(self, level):
         output = '\n'
-        output += '*' * level
+        output += '-' * level
         output += ' %s' % self.abstraction
         for element in self.elements:
             output += element.pretty_hierarchy(level+1)
